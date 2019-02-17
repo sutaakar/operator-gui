@@ -86,7 +86,7 @@ view kieApp =
       [ div [] [ text "Kie app name: ", input [ placeholder "Kie app name", value kieApp.name, onInput ChangeName ] [] ]
       , div [] [ text "Environment: ", Environment.getEnvironmentDropdownList kieApp.environment SelectEnvironment ]
       ]
-      ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Servers" ] ]
+      ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
       ++ getServerView kieApp
       ++ [ div [] [ textarea [ cols 40, rows 10, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
     )
