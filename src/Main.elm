@@ -87,12 +87,12 @@ view kieApp =
       , div [] [ text "Environment: ", Environment.getEnvironmentDropdownList kieApp.environment SelectEnvironment ]
       ]
       ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Servers" ] ]
-      ++ getServerViewIfEnabled kieApp
+      ++ getServerView kieApp
       ++ [ div [] [ textarea [ cols 40, rows 10, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
     )
 
-getServerViewIfEnabled : KieApp -> List (Html Msg)
-getServerViewIfEnabled kieApp =
+getServerView : KieApp -> List (Html Msg)
+getServerView kieApp =
   case kieApp.server of
     Just server ->
       Server.getServerView server ServerMsg
