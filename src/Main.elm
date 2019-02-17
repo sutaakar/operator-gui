@@ -24,7 +24,7 @@ type alias KieApp =
 
 init : KieApp
 init =
-  { name = "trial"
+  { name = "my-kie-app"
   , environment = Environment.rhdm_trial
   , server = Nothing }
 
