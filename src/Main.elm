@@ -25,7 +25,7 @@ type alias KieApp =
 init : KieApp
 init =
   { name = "trial"
-  , environment = Environment.trial
+  , environment = Environment.rhdm_trial
   , server = Nothing }
 
 containsServer : KieApp -> Bool
@@ -54,7 +54,7 @@ update msg kieApp =
       { kieApp | environment =
         case Environment.getEnvironmentFromName newEnvironmentName of
           Nothing ->
-            Environment.trial
+            Environment.rhdm_trial
           Just newEnvironment ->
             newEnvironment
       }
