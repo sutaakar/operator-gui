@@ -39,6 +39,19 @@ setEnvName : String -> Env_item -> Env_item
 setEnvName newName envItem =
   {envItem | name = newName}
 
+getEnvValueAsString : Env_value -> String
+getEnvValueAsString envValue =
+  case envValue of
+    Value value ->
+      value
+    ValueFrom valueFrom ->
+      valueFrom
+
+
+setEnvValue : String -> Env_item -> Env_item
+setEnvValue newValue envItem =
+  {envItem | value = Value newValue}
+
 updateSingleEnvItemWithIndex : Int -> (Env_item -> Env_item) -> Int -> Env_item -> Env_item
 updateSingleEnvItemWithIndex updateIndex envItemUpdate envIndex env =
   if updateIndex == envIndex then
@@ -50,7 +63,7 @@ updateEnvItemInList : Int -> (Env_item -> Env_item) -> List Env_item -> List Env
 updateEnvItemInList updateIndex envItemUpdate envItems =
   if List.length envItems > updateIndex then
     List.indexedMap (updateSingleEnvItemWithIndex updateIndex envItemUpdate) envItems |>
-    List.filter (\envItem -> not (String.isEmpty envItem.name))
+    List.filter (\envItem -> not (String.isEmpty envItem.name) || not (String.isEmpty (getEnvValueAsString envItem.value)))
   else
     envItems ++ [envItemUpdate { name = "", value = Value "" }]
 
@@ -64,6 +77,7 @@ updateEnvItemInSpec updateIndex envItemUpdate spec =
 type Msg
   = ChangeDeployments String
   | ChangeEnvVariableName Int String
+  | ChangeEnvVariableValue Int String
 
 mapServerEvent : Msg -> Server -> Server
 mapServerEvent msg server =
@@ -72,6 +86,8 @@ mapServerEvent msg server =
       { server | deployments = String.toInt depl }
     ChangeEnvVariableName updateIndex newName ->
       { server | spec = updateEnvItemInSpec updateIndex (setEnvName newName) server.spec}
+    ChangeEnvVariableValue updateIndex newValue ->
+      { server | spec = updateEnvItemInSpec updateIndex (setEnvValue newValue) server.spec}
 
 
 -- VIEW
@@ -88,7 +104,8 @@ getEnvVariablesView server msg =
 
 getSingleEnvVariableView : (Msg -> msg) -> Int -> Env_item -> Html msg
 getSingleEnvVariableView msg index env_item =
-  div [] [ text "Env variable name: ", input [ placeholder "Name", value env_item.name, onInput (ChangeEnvVariableName index >> msg) ] [] ]
+  div [] [ text "Env variable name: ", input [ placeholder "Name", value env_item.name, onInput (ChangeEnvVariableName index >> msg) ] []
+    , text "Env variable value: ", input [ placeholder "Value", value (getEnvValueAsString env_item.value), onInput (ChangeEnvVariableValue index >> msg) ] [] ]
 
 
 getServerAsYaml : Server -> String
