@@ -88,7 +88,7 @@ view kieApp =
       ]
       ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
       ++ getServerView kieApp
-      ++ [ div [] [ textarea [ cols 40, rows 10, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
+      ++ [ div [] [ textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
     )
 
 getServerView : KieApp -> List (Html Msg)
