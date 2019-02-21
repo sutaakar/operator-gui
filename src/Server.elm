@@ -1,6 +1,6 @@
 module Server exposing (Server, Msg, emptyServer, getServerView, mapServerEvent, getServerAsYaml)
 
-import Html exposing (Html, Attribute, div, text, input)
+import Html exposing (Html, Attribute, div, text, input, select, option)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 
@@ -14,17 +14,23 @@ type alias Env_item =
   { name : String
   , value : Env_value}
 
+type From
+  = ImageStreamTag String String
+  | DockerImage String
+
 type alias Spec =
   { env : List Env_item }
 
 type alias Server =
   { deployments : Maybe Int
+  , from : Maybe From
   , spec : Spec
   }
 
 emptyServer : Server
 emptyServer =
   {deployments = Nothing
+  , from = Nothing
   , spec = {env = []}}
 
 getDeploymentsAsString : Server -> String
@@ -34,6 +40,15 @@ getDeploymentsAsString server =
       String.fromInt deployments
     Nothing ->
       ""
+
+getFromFromName : String -> Maybe From
+getFromFromName fromName =
+  if fromName == "ImageStreamTag" then
+    Just (ImageStreamTag "" "")
+  else if fromName == "DockerImage" then
+    Just (DockerImage "")
+  else
+    Nothing
 
 setEnvName : String -> Env_item -> Env_item
 setEnvName newName envItem =
@@ -46,7 +61,6 @@ getEnvValueAsString envValue =
       value
     ValueFrom valueFrom ->
       valueFrom
-
 
 setEnvValue : String -> Env_item -> Env_item
 setEnvValue newValue envItem =
@@ -76,6 +90,9 @@ updateEnvItemInSpec updateIndex envItemUpdate spec =
 
 type Msg
   = ChangeDeployments String
+  | ChangeFrom String
+  | ChangeFromName String
+  | ChangeFromNamespace String
   | ChangeEnvVariableName Int String
   | ChangeEnvVariableValue Int String
 
@@ -84,6 +101,22 @@ mapServerEvent msg server =
   case msg of
     ChangeDeployments depl ->
       { server | deployments = String.toInt depl }
+    ChangeFrom fromName ->
+      { server | from = getFromFromName fromName }
+    ChangeFromName newName ->
+      case server.from of
+        Just (ImageStreamTag _ namespace) ->
+          { server | from = Just (ImageStreamTag newName namespace)}
+        Just (DockerImage _) ->
+          { server | from = Just (DockerImage newName)}
+        _ ->
+          server
+    ChangeFromNamespace newNamespace ->
+      case server.from of
+        Just (ImageStreamTag name namespace) ->
+          { server | from = Just (ImageStreamTag name newNamespace)}
+        _ ->
+          server
     ChangeEnvVariableName updateIndex newName ->
       { server | spec = updateEnvItemInSpec updateIndex (setEnvName newName) server.spec}
     ChangeEnvVariableValue updateIndex newValue ->
@@ -95,7 +128,37 @@ mapServerEvent msg server =
 getServerView : Server -> (Msg -> msg) -> List (Html msg)
 getServerView server msg =
   [ div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ] ]
+  ++ getFromView server.from msg
   ++ getEnvVariablesView server msg
+
+getFromView : Maybe From -> (Msg -> msg) -> List (Html msg)
+getFromView selectedFrom msg =
+  case selectedFrom of
+    Nothing ->
+      [select [ onInput (ChangeFrom >> msg)] (getFromOptions selectedFrom)]
+    Just (ImageStreamTag name namespace) ->
+      [select [ onInput (ChangeFrom >> msg)] (getFromOptions selectedFrom)
+      , text "Name: ", input [ placeholder "Name", value name, onInput (ChangeFromName >> msg)] []
+      , text "Namespace: ", input [ placeholder "Keep empty for default", value namespace, onInput (ChangeFromNamespace >> msg)] []]
+    Just (DockerImage name) ->
+      [select [ onInput (ChangeFrom >> msg)] (getFromOptions selectedFrom)
+      , text "Name: ", input [ placeholder "Name", value name, onInput (ChangeFromName >> msg)] []]
+
+getFromOptions : Maybe From -> List (Html msg)
+getFromOptions selectedFrom =
+  case selectedFrom of
+    Nothing ->
+      [option [ Html.Attributes.selected True, value "" ] [text ""]
+      , option [ Html.Attributes.selected False, value "ImageStreamTag" ] [text "ImageStreamTag"]
+      , option [ Html.Attributes.selected False, value "DockerImage" ] [text "DockerImage"]]
+    Just (ImageStreamTag _ _) ->
+      [option [ Html.Attributes.selected False, value "" ] [text ""]
+      , option [ Html.Attributes.selected True, value "ImageStreamTag" ] [text "ImageStreamTag"]
+      , option [ Html.Attributes.selected False, value "DockerImage" ] [text "DockerImage"]]
+    Just (DockerImage _) ->
+      [option [ Html.Attributes.selected False, value "" ] [text ""]
+      , option [ Html.Attributes.selected False, value "ImageStreamTag" ] [text "ImageStreamTag"]
+      , option [ Html.Attributes.selected True, value "DockerImage" ] [text "DockerImage"]]
 
 getEnvVariablesView : Server -> (Msg -> msg) -> List (Html msg)
 getEnvVariablesView server msg =
@@ -112,6 +175,7 @@ getServerAsYaml : Server -> String
 getServerAsYaml server =
   "    server:" ++ "\n"
   ++ getDeploymentsAsYaml server
+  ++ getFromAsYaml server
   ++ getSpecAsYaml server
   ++ getEnvItemsAsYaml server
 
@@ -120,6 +184,27 @@ getDeploymentsAsYaml server =
   case server.deployments of
       Just int ->
         "      deployments: " ++ String.fromInt int  ++ "\n"
+      Nothing ->
+        ""
+
+getFromAsYaml : Server -> String
+getFromAsYaml server =
+  case server.from of
+      Just from ->
+        case from of
+          ImageStreamTag name namespace ->
+            "      from:\n"
+            ++ "        kind: ImageStreamTag\n"
+            ++ "        name: " ++ name ++ "\n"
+            ++
+            if String.length namespace > 0 then
+              "        namespace: " ++ namespace ++ "\n"
+            else
+              ""
+          DockerImage name ->
+            "      from:\n"
+            ++ "        kind: DockerImage\n"
+            ++ "        name: " ++ name ++ "\n"
       Nothing ->
         ""
 

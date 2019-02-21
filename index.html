@@ -4598,7 +4598,20 @@ var author$project$Environment$getEnvironmentFromName = function (environmentNam
 };
 var author$project$Server$emptyServer = {
 	deployments: elm$core$Maybe$Nothing,
+	from: elm$core$Maybe$Nothing,
 	spec: {env: _List_Nil}
+};
+var author$project$Server$DockerImage = function (a) {
+	return {$: 'DockerImage', a: a};
+};
+var author$project$Server$ImageStreamTag = F2(
+	function (a, b) {
+		return {$: 'ImageStreamTag', a: a, b: b};
+	});
+var author$project$Server$getFromFromName = function (fromName) {
+	return (fromName === 'ImageStreamTag') ? elm$core$Maybe$Just(
+		A2(author$project$Server$ImageStreamTag, '', '')) : ((fromName === 'DockerImage') ? elm$core$Maybe$Just(
+		author$project$Server$DockerImage('')) : elm$core$Maybe$Nothing);
 };
 var author$project$Server$setEnvName = F2(
 	function (newName, envItem) {
@@ -4609,6 +4622,14 @@ var author$project$Server$setEnvName = F2(
 var author$project$Server$Value = function (a) {
 	return {$: 'Value', a: a};
 };
+var author$project$Server$setEnvValue = F2(
+	function (newValue, envItem) {
+		return _Utils_update(
+			envItem,
+			{
+				value: author$project$Server$Value(newValue)
+			});
+	});
 var author$project$Server$updateSingleEnvItemWithIndex = F4(
 	function (updateIndex, envItemUpdate, envIndex, env) {
 		return _Utils_eq(updateIndex, envIndex) ? envItemUpdate(env) : env;
@@ -4697,25 +4718,85 @@ var author$project$Server$updateEnvItemInSpec = F3(
 var elm$core$String$toInt = _String_toInt;
 var author$project$Server$mapServerEvent = F2(
 	function (msg, server) {
-		if (msg.$ === 'ChangeDeployments') {
-			var depl = msg.a;
-			return _Utils_update(
-				server,
-				{
-					deployments: elm$core$String$toInt(depl)
-				});
-		} else {
-			var updateIndex = msg.a;
-			var newName = msg.b;
-			return _Utils_update(
-				server,
-				{
-					spec: A3(
-						author$project$Server$updateEnvItemInSpec,
-						updateIndex,
-						author$project$Server$setEnvName(newName),
-						server.spec)
-				});
+		switch (msg.$) {
+			case 'ChangeDeployments':
+				var depl = msg.a;
+				return _Utils_update(
+					server,
+					{
+						deployments: elm$core$String$toInt(depl)
+					});
+			case 'ChangeFrom':
+				var fromName = msg.a;
+				return _Utils_update(
+					server,
+					{
+						from: author$project$Server$getFromFromName(fromName)
+					});
+			case 'ChangeFromName':
+				var newName = msg.a;
+				var _n1 = server.from;
+				if (_n1.$ === 'Just') {
+					if (_n1.a.$ === 'ImageStreamTag') {
+						var _n2 = _n1.a;
+						var namespace = _n2.b;
+						return _Utils_update(
+							server,
+							{
+								from: elm$core$Maybe$Just(
+									A2(author$project$Server$ImageStreamTag, newName, namespace))
+							});
+					} else {
+						return _Utils_update(
+							server,
+							{
+								from: elm$core$Maybe$Just(
+									author$project$Server$DockerImage(newName))
+							});
+					}
+				} else {
+					return server;
+				}
+			case 'ChangeFromNamespace':
+				var newNamespace = msg.a;
+				var _n3 = server.from;
+				if ((_n3.$ === 'Just') && (_n3.a.$ === 'ImageStreamTag')) {
+					var _n4 = _n3.a;
+					var name = _n4.a;
+					var namespace = _n4.b;
+					return _Utils_update(
+						server,
+						{
+							from: elm$core$Maybe$Just(
+								A2(author$project$Server$ImageStreamTag, name, newNamespace))
+						});
+				} else {
+					return server;
+				}
+			case 'ChangeEnvVariableName':
+				var updateIndex = msg.a;
+				var newName = msg.b;
+				return _Utils_update(
+					server,
+					{
+						spec: A3(
+							author$project$Server$updateEnvItemInSpec,
+							updateIndex,
+							author$project$Server$setEnvName(newName),
+							server.spec)
+					});
+			default:
+				var updateIndex = msg.a;
+				var newValue = msg.b;
+				return _Utils_update(
+					server,
+					{
+						spec: A3(
+							author$project$Server$updateEnvItemInSpec,
+							updateIndex,
+							author$project$Server$setEnvValue(newValue),
+							server.spec)
+					});
 		}
 	});
 var author$project$Main$update = F2(
@@ -5252,11 +5333,28 @@ var author$project$Server$getEnvItemsAsYaml = function (server) {
 		'',
 		A2(elm$core$List$map, author$project$Server$getEnvVariableAsYaml, server.spec.env)))) : '';
 };
+var elm$core$String$length = _String_length;
+var author$project$Server$getFromAsYaml = function (server) {
+	var _n0 = server.from;
+	if (_n0.$ === 'Just') {
+		var from = _n0.a;
+		if (from.$ === 'ImageStreamTag') {
+			var name = from.a;
+			var namespace = from.b;
+			return '      from:\n' + ('        kind: ImageStreamTag\n' + ('        name: ' + (name + ('\n' + ((elm$core$String$length(namespace) > 0) ? ('        namespace: ' + (namespace + '\n')) : '')))));
+		} else {
+			var name = from.a;
+			return '      from:\n' + ('        kind: DockerImage\n' + ('        name: ' + (name + '\n')));
+		}
+	} else {
+		return '';
+	}
+};
 var author$project$Server$getSpecAsYaml = function (server) {
 	return (elm$core$List$length(server.spec.env) > 0) ? ('      spec:' + '\n') : '';
 };
 var author$project$Server$getServerAsYaml = function (server) {
-	return '    server:' + ('\n' + (author$project$Server$getDeploymentsAsYaml(server) + (author$project$Server$getSpecAsYaml(server) + author$project$Server$getEnvItemsAsYaml(server))));
+	return '    server:' + ('\n' + (author$project$Server$getDeploymentsAsYaml(server) + (author$project$Server$getFromAsYaml(server) + (author$project$Server$getSpecAsYaml(server) + author$project$Server$getEnvItemsAsYaml(server)))));
 };
 var author$project$Main$getServerAsYaml = function (kieApp) {
 	var _n0 = kieApp.server;
@@ -5289,6 +5387,19 @@ var author$project$Server$ChangeEnvVariableName = F2(
 	function (a, b) {
 		return {$: 'ChangeEnvVariableName', a: a, b: b};
 	});
+var author$project$Server$ChangeEnvVariableValue = F2(
+	function (a, b) {
+		return {$: 'ChangeEnvVariableValue', a: a, b: b};
+	});
+var author$project$Server$getEnvValueAsString = function (envValue) {
+	if (envValue.$ === 'Value') {
+		var value = envValue.a;
+		return value;
+	} else {
+		var valueFrom = envValue.a;
+		return valueFrom;
+	}
+};
 var elm$core$Basics$composeR = F3(
 	function (f, g, x) {
 		return g(
@@ -5297,8 +5408,9 @@ var elm$core$Basics$composeR = F3(
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
-var author$project$Server$getSingleEnvVariableView = F3(
-	function (msg, index, env_item) {
+var elm$html$Html$Attributes$readonly = elm$html$Html$Attributes$boolProperty('readOnly');
+var author$project$Server$getSingleEnvVariableView = F4(
+	function (msg, lastEntryLine, index, env_item) {
 		return A2(
 			elm$html$Html$div,
 			_List_Nil,
@@ -5317,6 +5429,22 @@ var author$project$Server$getSingleEnvVariableView = F3(
 								author$project$Server$ChangeEnvVariableName(index),
 								msg))
 						]),
+					_List_Nil),
+					elm$html$Html$text('Env variable value: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Value'),
+							elm$html$Html$Attributes$readonly(lastEntryLine),
+							elm$html$Html$Attributes$value(
+							author$project$Server$getEnvValueAsString(env_item.value)),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								author$project$Server$ChangeEnvVariableValue(index),
+								msg))
+						]),
 					_List_Nil)
 				]));
 	});
@@ -5325,19 +5453,225 @@ var author$project$Server$getEnvVariablesView = F2(
 		return _Utils_ap(
 			A2(
 				elm$core$List$indexedMap,
-				author$project$Server$getSingleEnvVariableView(msg),
+				A2(author$project$Server$getSingleEnvVariableView, msg, false),
 				server.spec.env),
 			_List_fromArray(
 				[
-					A3(
+					A4(
 					author$project$Server$getSingleEnvVariableView,
 					msg,
+					true,
 					elm$core$List$length(server.spec.env),
 					{
 						name: '',
 						value: author$project$Server$Value('')
 					})
 				]));
+	});
+var author$project$Server$ChangeFrom = function (a) {
+	return {$: 'ChangeFrom', a: a};
+};
+var author$project$Server$ChangeFromName = function (a) {
+	return {$: 'ChangeFromName', a: a};
+};
+var author$project$Server$ChangeFromNamespace = function (a) {
+	return {$: 'ChangeFromNamespace', a: a};
+};
+var author$project$Server$getFromOptions = function (selectedFrom) {
+	if (selectedFrom.$ === 'Nothing') {
+		return _List_fromArray(
+			[
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(true),
+						elm$html$Html$Attributes$value('')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('')
+					])),
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(false),
+						elm$html$Html$Attributes$value('ImageStreamTag')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('ImageStreamTag')
+					])),
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(false),
+						elm$html$Html$Attributes$value('DockerImage')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('DockerImage')
+					]))
+			]);
+	} else {
+		if (selectedFrom.a.$ === 'ImageStreamTag') {
+			var _n1 = selectedFrom.a;
+			return _List_fromArray(
+				[
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$selected(false),
+							elm$html$Html$Attributes$value('')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('')
+						])),
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$selected(true),
+							elm$html$Html$Attributes$value('ImageStreamTag')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('ImageStreamTag')
+						])),
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$selected(false),
+							elm$html$Html$Attributes$value('DockerImage')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('DockerImage')
+						]))
+				]);
+		} else {
+			return _List_fromArray(
+				[
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$selected(false),
+							elm$html$Html$Attributes$value('')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('')
+						])),
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$selected(false),
+							elm$html$Html$Attributes$value('ImageStreamTag')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('ImageStreamTag')
+						])),
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$selected(true),
+							elm$html$Html$Attributes$value('DockerImage')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('DockerImage')
+						]))
+				]);
+		}
+	}
+};
+var author$project$Server$getFromView = F2(
+	function (selectedFrom, msg) {
+		if (selectedFrom.$ === 'Nothing') {
+			return _List_fromArray(
+				[
+					A2(
+					elm$html$Html$select,
+					_List_fromArray(
+						[
+							elm$html$Html$Events$onInput(
+							A2(elm$core$Basics$composeR, author$project$Server$ChangeFrom, msg))
+						]),
+					author$project$Server$getFromOptions(selectedFrom))
+				]);
+		} else {
+			if (selectedFrom.a.$ === 'ImageStreamTag') {
+				var _n1 = selectedFrom.a;
+				var name = _n1.a;
+				var namespace = _n1.b;
+				return _List_fromArray(
+					[
+						A2(
+						elm$html$Html$select,
+						_List_fromArray(
+							[
+								elm$html$Html$Events$onInput(
+								A2(elm$core$Basics$composeR, author$project$Server$ChangeFrom, msg))
+							]),
+						author$project$Server$getFromOptions(selectedFrom)),
+						elm$html$Html$text('Name: '),
+						A2(
+						elm$html$Html$input,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$placeholder('Name'),
+								elm$html$Html$Attributes$value(name),
+								elm$html$Html$Events$onInput(
+								A2(elm$core$Basics$composeR, author$project$Server$ChangeFromName, msg))
+							]),
+						_List_Nil),
+						elm$html$Html$text('Namespace: '),
+						A2(
+						elm$html$Html$input,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$placeholder('Keep empty for default'),
+								elm$html$Html$Attributes$value(namespace),
+								elm$html$Html$Events$onInput(
+								A2(elm$core$Basics$composeR, author$project$Server$ChangeFromNamespace, msg))
+							]),
+						_List_Nil)
+					]);
+			} else {
+				var name = selectedFrom.a.a;
+				return _List_fromArray(
+					[
+						A2(
+						elm$html$Html$select,
+						_List_fromArray(
+							[
+								elm$html$Html$Events$onInput(
+								A2(elm$core$Basics$composeR, author$project$Server$ChangeFrom, msg))
+							]),
+						author$project$Server$getFromOptions(selectedFrom)),
+						elm$html$Html$text('Name: '),
+						A2(
+						elm$html$Html$input,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$placeholder('Name'),
+								elm$html$Html$Attributes$value(name),
+								elm$html$Html$Events$onInput(
+								A2(elm$core$Basics$composeR, author$project$Server$ChangeFromName, msg))
+							]),
+						_List_Nil)
+					]);
+			}
+		}
 	});
 var author$project$Server$getServerView = F2(
 	function (server, msg) {
@@ -5363,7 +5697,9 @@ var author$project$Server$getServerView = F2(
 							_List_Nil)
 						]))
 				]),
-			A2(author$project$Server$getEnvVariablesView, server, msg));
+			_Utils_ap(
+				A2(author$project$Server$getFromView, server.from, msg),
+				A2(author$project$Server$getEnvVariablesView, server, msg)));
 	});
 var author$project$Main$getServerView = function (kieApp) {
 	var _n0 = kieApp.server;
@@ -5382,7 +5718,6 @@ var elm$html$Html$Attributes$cols = function (n) {
 		'cols',
 		elm$core$String$fromInt(n));
 };
-var elm$html$Html$Attributes$readonly = elm$html$Html$Attributes$boolProperty('readOnly');
 var elm$html$Html$Attributes$rows = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -5472,8 +5807,8 @@ var author$project$Main$view = function (kieApp) {
 									elm$html$Html$textarea,
 									_List_fromArray(
 										[
-											elm$html$Html$Attributes$cols(40),
-											elm$html$Html$Attributes$rows(10),
+											elm$html$Html$Attributes$cols(80),
+											elm$html$Html$Attributes$rows(25),
 											elm$html$Html$Attributes$readonly(true)
 										]),
 									_List_fromArray(
@@ -5585,7 +5920,6 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
-var elm$core$String$length = _String_length;
 var elm$core$String$slice = _String_slice;
 var elm$core$String$dropLeft = F2(
 	function (n, string) {
