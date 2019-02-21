@@ -63,7 +63,7 @@ updateEnvItemInList : Int -> (Env_item -> Env_item) -> List Env_item -> List Env
 updateEnvItemInList updateIndex envItemUpdate envItems =
   if List.length envItems > updateIndex then
     List.indexedMap (updateSingleEnvItemWithIndex updateIndex envItemUpdate) envItems |>
-    List.filter (\envItem -> not (String.isEmpty envItem.name) || not (String.isEmpty (getEnvValueAsString envItem.value)))
+    List.filter (\envItem -> not (String.isEmpty envItem.name))
   else
     envItems ++ [envItemUpdate { name = "", value = Value "" }]
 
@@ -99,13 +99,13 @@ getServerView server msg =
 
 getEnvVariablesView : Server -> (Msg -> msg) -> List (Html msg)
 getEnvVariablesView server msg =
-  List.indexedMap (getSingleEnvVariableView msg) server.spec.env
-  ++ [getSingleEnvVariableView msg (List.length server.spec.env) { name = "", value = Value "" }]
+  List.indexedMap (getSingleEnvVariableView msg False) server.spec.env
+  ++ [getSingleEnvVariableView msg True (List.length server.spec.env) { name = "", value = Value "" }]
 
-getSingleEnvVariableView : (Msg -> msg) -> Int -> Env_item -> Html msg
-getSingleEnvVariableView msg index env_item =
+getSingleEnvVariableView : (Msg -> msg) -> Bool -> Int -> Env_item -> Html msg
+getSingleEnvVariableView msg lastEntryLine index env_item =
   div [] [ text "Env variable name: ", input [ placeholder "Name", value env_item.name, onInput (ChangeEnvVariableName index >> msg) ] []
-    , text "Env variable value: ", input [ placeholder "Value", value (getEnvValueAsString env_item.value), onInput (ChangeEnvVariableValue index >> msg) ] [] ]
+    , text "Env variable value: ", input [ placeholder "Value", readonly lastEntryLine, value (getEnvValueAsString env_item.value), onInput (ChangeEnvVariableValue index >> msg) ] [] ]
 
 
 getServerAsYaml : Server -> String
