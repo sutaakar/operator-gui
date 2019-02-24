@@ -5,6 +5,7 @@ import Html.Events exposing (onInput, onClick)
 
 import Environment
 import Server
+import ImageRegistry
 
 -- MAIN
 
@@ -20,13 +21,15 @@ type alias KieApp =
   { name : String
   , environment : Environment.Environment
   , server : Maybe Server.Server
+  , imageRegistry : ImageRegistry.ImageRegistry
   }
 
 init : KieApp
 init =
   { name = "my-kie-app"
   , environment = Environment.rhdm_trial
-  , server = Nothing }
+  , server = Nothing
+  , imageRegistry = ImageRegistry.emptyImageRegistry}
 
 containsServer : KieApp -> Bool
 containsServer kieApp =
@@ -44,6 +47,7 @@ type Msg
   | SelectEnvironment String
   | ToggleServer
   | ServerMsg Server.Msg
+  | ImageRegistryMsg ImageRegistry.Msg
 
 update : Msg -> KieApp -> KieApp
 update msg kieApp =
@@ -74,6 +78,8 @@ update msg kieApp =
           Nothing ->
             Nothing
       }
+    ImageRegistryMsg imageRegistryMessage ->
+      { kieApp | imageRegistry = ImageRegistry.mapImageRegistryEvent imageRegistryMessage kieApp.imageRegistry}
 
 
 
@@ -88,6 +94,7 @@ view kieApp =
       ]
       ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
       ++ getServerView kieApp
+      ++ ImageRegistry.getImageRegistryView kieApp.imageRegistry ImageRegistryMsg
       ++ [ div [] [ textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
     )
 
@@ -110,6 +117,7 @@ getKieAppAsYaml kieApp =
   ++ "  environment: " ++ Environment.getEnvironmentName kieApp.environment ++ "\n"
   ++ getObjectsAsYaml kieApp
   ++ getServerAsYaml kieApp
+  ++ ImageRegistry.getImageRegistryAsYaml kieApp.imageRegistry
 
 
 getObjectsAsYaml : KieApp -> String
