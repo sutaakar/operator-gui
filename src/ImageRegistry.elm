@@ -1,7 +1,7 @@
 module ImageRegistry exposing (ImageRegistry , Msg, mapImageRegistryEvent, emptyImageRegistry, getImageRegistryView, getImageRegistryAsYaml)
 
-import Html exposing (Html, Attribute, div, text, input, select, option)
-import Html.Attributes exposing (..)
+import Html exposing (Html, Attribute, div, text, input, select, option, form, br, fieldset, legend)
+import Html.Attributes exposing (type_, checked, placeholder, value)
 import Html.Events exposing (onInput, onClick)
 
 -- MODEL
@@ -33,8 +33,10 @@ mapImageRegistryEvent msg imageRegistry =
 
 getImageRegistryView : ImageRegistry -> (Msg -> msg) -> List (Html msg)
 getImageRegistryView imageRegistry msg =
-  [ div [] [ input [ type_ "checkbox", checked imageRegistry.insecure, onClick (msg ToggleInsecure) ] [], text "Insecure registry" ]
-  , div [] [ text "Registry for Kie images: ", input [ placeholder "Registry", value imageRegistry.registry, onInput (ChangeRegistryName >> msg) ] [] ] ]
+  [ form [] [
+  fieldset [] [ legend [] [text "Image registry configuration"],
+  input [ type_ "checkbox", checked imageRegistry.insecure, onClick (msg ToggleInsecure) ] [], text "Insecure registry", br [] []
+  , text "Registry for Kie images: ", input [ placeholder "Registry", value imageRegistry.registry, onInput (ChangeRegistryName >> msg) ] [] ] ] ]
 
 getImageRegistryAsYaml : ImageRegistry -> String
 getImageRegistryAsYaml imageRegistry =
