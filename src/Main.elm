@@ -62,7 +62,7 @@ type Msg
 
 
 type ImageRegistryMsg
-    = ToggleInsecure
+    = ToggleInsecure ImageRegistry.ImageRegistry
     | ChangeRegistryName String
 
 
@@ -112,13 +112,8 @@ update msg kieApp =
 updateImageRegistry : ImageRegistryMsg -> Maybe ImageRegistry.ImageRegistry -> Maybe ImageRegistry.ImageRegistry
 updateImageRegistry imageRegistryMsg imageRegistry =
     case imageRegistryMsg of
-        ToggleInsecure ->
-            case imageRegistry of
-                Just imageReg ->
-                    Just { imageReg | insecure = not imageReg.insecure }
-
-                Nothing ->
-                    Nothing
+        ToggleInsecure imageReg ->
+            Just { imageReg | insecure = not imageReg.insecure }
 
         ChangeRegistryName newRegistryName ->
             case imageRegistry of
@@ -170,7 +165,7 @@ getImageRegistryView imageRegistry =
             [ Html.form []
                 [ Html.fieldset []
                     [ Html.legend [] [ text "Image registry configuration" ]
-                    , input [ type_ "checkbox", checked imageReg.insecure, onClick (ImageRegistryMsg ToggleInsecure) ] []
+                    , input [ type_ "checkbox", checked imageReg.insecure, onClick (ImageRegistryMsg (ToggleInsecure imageReg)) ] []
                     , text "Insecure registry"
                     , Html.br [] []
                     , text "Registry for Kie images: "
@@ -183,7 +178,7 @@ getImageRegistryView imageRegistry =
             [ Html.form []
                 [ Html.fieldset []
                     [ Html.legend [] [ text "Image registry configuration" ]
-                    , input [ type_ "checkbox", disabled True, checked False, onClick (ImageRegistryMsg ToggleInsecure) ] []
+                    , input [ type_ "checkbox", disabled True, checked False ] []
                     , text "Insecure registry"
                     , Html.br [] []
                     , text "Registry for Kie images: "
