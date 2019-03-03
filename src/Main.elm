@@ -63,7 +63,7 @@ type Msg
 
 type ImageRegistryMsg
     = ToggleInsecure ImageRegistry.ImageRegistry
-    | ChangeRegistryName String
+    | ChangeRegistryName ImageRegistry.ImageRegistry String
 
 
 update : Msg -> KieApp -> KieApp
@@ -115,20 +115,12 @@ updateImageRegistry imageRegistryMsg imageRegistry =
         ToggleInsecure imageReg ->
             Just { imageReg | insecure = not imageReg.insecure }
 
-        ChangeRegistryName newRegistryName ->
-            case imageRegistry of
-                Just imageReg ->
-                    if String.length newRegistryName > 0 then
-                        Just { imageReg | registry = newRegistryName }
+        ChangeRegistryName imageReg newRegistryName ->
+            if String.length newRegistryName > 0 then
+                Just { imageReg | registry = newRegistryName }
 
-                    else
-                        Nothing
-
-                Nothing ->
-                    Just
-                        { insecure = False
-                        , registry = newRegistryName
-                        }
+            else
+                Nothing
 
 
 
@@ -169,7 +161,7 @@ getImageRegistryView imageRegistry =
                     , text "Insecure registry"
                     , Html.br [] []
                     , text "Registry for Kie images: "
-                    , input [ placeholder "Registry", value imageReg.registry, onInput (ChangeRegistryName >> ImageRegistryMsg) ] []
+                    , input [ placeholder "Registry", value imageReg.registry, onInput (ChangeRegistryName imageReg >> ImageRegistryMsg) ] []
                     ]
                 ]
             ]
@@ -182,7 +174,7 @@ getImageRegistryView imageRegistry =
                     , text "Insecure registry"
                     , Html.br [] []
                     , text "Registry for Kie images: "
-                    , input [ placeholder "Registry", onInput (ChangeRegistryName >> ImageRegistryMsg) ] []
+                    , input [ placeholder "Registry", onInput (ChangeRegistryName ImageRegistry.emptyImageRegistry >> ImageRegistryMsg) ] []
                     ]
                 ]
             ]
