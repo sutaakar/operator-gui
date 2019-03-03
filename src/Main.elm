@@ -130,12 +130,10 @@ updateImageRegistry imageRegistryMsg imageRegistry =
                         Nothing
 
                 Nothing ->
-                    Just { getImageRegistryEmpty | registry = newRegistryName }
-
-
-getImageRegistryEmpty : ImageRegistry.ImageRegistry
-getImageRegistryEmpty =
-    ImageRegistry.emptyImageRegistry
+                    Just
+                        { insecure = False
+                        , registry = newRegistryName
+                        }
 
 
 
