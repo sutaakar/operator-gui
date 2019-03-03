@@ -135,7 +135,7 @@ view kieApp =
          ]
             ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
             ++ getServerView kieApp
-            ++ getImageRegistryView kieApp.imageRegistry
+            ++ getImageRegistryView kieApp
             ++ [ div [] [ textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
         )
 
@@ -150,12 +150,12 @@ getServerView kieApp =
             []
 
 
-getImageRegistryView : Maybe ImageRegistry.ImageRegistry -> List (Html Msg)
-getImageRegistryView imageRegistry =
+getImageRegistryView : KieApp -> List (Html Msg)
+getImageRegistryView kieApp =
     let
         insecureInput : Html Msg
         insecureInput =
-            case imageRegistry of
+            case kieApp.imageRegistry of
                 Just imageReg ->
                     input [ type_ "checkbox", checked imageReg.insecure, onClick (ImageRegistryMsg (ToggleInsecure imageReg)) ] []
 
@@ -164,7 +164,7 @@ getImageRegistryView imageRegistry =
 
         changeRegistryInput : Html Msg
         changeRegistryInput =
-            case imageRegistry of
+            case kieApp.imageRegistry of
                 Just imageReg ->
                     input [ placeholder "Registry", value imageReg.registry, onInput (ChangeRegistryName imageReg >> ImageRegistryMsg) ] []
 
