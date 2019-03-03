@@ -26,7 +26,7 @@ type alias KieApp =
     { name : String
     , environment : Environment.Environment
     , server : Maybe Server.Server
-    , imageRegistry : ImageRegistry.ImageRegistry
+    , imageRegistry : Maybe ImageRegistry.ImageRegistry
     }
 
 
@@ -35,7 +35,7 @@ init =
     { name = "my-kie-app"
     , environment = Environment.rhdm_trial
     , server = Nothing
-    , imageRegistry = ImageRegistry.emptyImageRegistry
+    , imageRegistry = Nothing
     }
 
 
@@ -109,14 +109,33 @@ update msg kieApp =
             { kieApp | imageRegistry = updateImageRegistry imageRegistryMsg kieApp.imageRegistry }
 
 
-updateImageRegistry : ImageRegistryMsg -> ImageRegistry.ImageRegistry -> ImageRegistry.ImageRegistry
+updateImageRegistry : ImageRegistryMsg -> Maybe ImageRegistry.ImageRegistry -> Maybe ImageRegistry.ImageRegistry
 updateImageRegistry imageRegistryMsg imageRegistry =
     case imageRegistryMsg of
         ToggleInsecure ->
-            { imageRegistry | insecure = not imageRegistry.insecure }
+            case imageRegistry of
+                Just imageReg ->
+                    Just { imageReg | insecure = not imageReg.insecure }
+
+                Nothing ->
+                    Nothing
 
         ChangeRegistryName newRegistryName ->
-            { imageRegistry | registry = newRegistryName }
+            case imageRegistry of
+                Just imageReg ->
+                    if String.length newRegistryName > 0 then
+                        Just { imageReg | registry = newRegistryName }
+
+                    else
+                        Nothing
+
+                Nothing ->
+                    Just { getImageRegistryEmpty | registry = newRegistryName }
+
+
+getImageRegistryEmpty : ImageRegistry.ImageRegistry
+getImageRegistryEmpty =
+    ImageRegistry.emptyImageRegistry
 
 
 
@@ -146,19 +165,34 @@ getServerView kieApp =
             []
 
 
-getImageRegistryView : ImageRegistry.ImageRegistry -> List (Html Msg)
+getImageRegistryView : Maybe ImageRegistry.ImageRegistry -> List (Html Msg)
 getImageRegistryView imageRegistry =
-    [ Html.form []
-        [ Html.fieldset []
-            [ Html.legend [] [ text "Image registry configuration" ]
-            , input [ type_ "checkbox", checked imageRegistry.insecure, onClick (ImageRegistryMsg ToggleInsecure) ] []
-            , text "Insecure registry"
-            , Html.br [] []
-            , text "Registry for Kie images: "
-            , input [ placeholder "Registry", value imageRegistry.registry, onInput (ChangeRegistryName >> ImageRegistryMsg) ] []
+    case imageRegistry of
+        Just imageReg ->
+            [ Html.form []
+                [ Html.fieldset []
+                    [ Html.legend [] [ text "Image registry configuration" ]
+                    , input [ type_ "checkbox", checked imageReg.insecure, onClick (ImageRegistryMsg ToggleInsecure) ] []
+                    , text "Insecure registry"
+                    , Html.br [] []
+                    , text "Registry for Kie images: "
+                    , input [ placeholder "Registry", value imageReg.registry, onInput (ChangeRegistryName >> ImageRegistryMsg) ] []
+                    ]
+                ]
             ]
-        ]
-    ]
+
+        Nothing ->
+            [ Html.form []
+                [ Html.fieldset []
+                    [ Html.legend [] [ text "Image registry configuration" ]
+                    , input [ type_ "checkbox", disabled True, checked False, onClick (ImageRegistryMsg ToggleInsecure) ] []
+                    , text "Insecure registry"
+                    , Html.br [] []
+                    , text "Registry for Kie images: "
+                    , input [ placeholder "Registry", onInput (ChangeRegistryName >> ImageRegistryMsg) ] []
+                    ]
+                ]
+            ]
 
 
 getKieAppAsYaml : KieApp -> String
@@ -175,7 +209,7 @@ getKieAppAsYaml kieApp =
         ++ "\n"
         ++ getObjectsAsYaml kieApp
         ++ getServerAsYaml kieApp
-        ++ ImageRegistry.getImageRegistryAsYaml kieApp.imageRegistry
+        ++ getImageRegistryAsYaml kieApp
 
 
 getObjectsAsYaml : KieApp -> String
@@ -192,6 +226,16 @@ getServerAsYaml kieApp =
     case kieApp.server of
         Just server ->
             Server.getServerAsYaml server
+
+        Nothing ->
+            ""
+
+
+getImageRegistryAsYaml : KieApp -> String
+getImageRegistryAsYaml kieApp =
+    case kieApp.imageRegistry of
+        Just imageRegistry ->
+            ImageRegistry.getImageRegistryAsYaml imageRegistry
 
         Nothing ->
             ""
