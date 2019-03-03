@@ -106,11 +106,11 @@ update msg kieApp =
             }
 
         ImageRegistryMsg imageRegistryMsg ->
-            { kieApp | imageRegistry = updateImageRegistry imageRegistryMsg kieApp.imageRegistry }
+            { kieApp | imageRegistry = updateImageRegistry imageRegistryMsg }
 
 
-updateImageRegistry : ImageRegistryMsg -> Maybe ImageRegistry.ImageRegistry -> Maybe ImageRegistry.ImageRegistry
-updateImageRegistry imageRegistryMsg imageRegistry =
+updateImageRegistry : ImageRegistryMsg -> Maybe ImageRegistry.ImageRegistry
+updateImageRegistry imageRegistryMsg =
     case imageRegistryMsg of
         ToggleInsecure imageReg ->
             Just { imageReg | insecure = not imageReg.insecure }
