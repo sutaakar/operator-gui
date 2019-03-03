@@ -58,7 +58,12 @@ type Msg
     | SelectEnvironment String
     | ToggleServer
     | ServerMsg Server.Msg
-    | ImageRegistryMsg ImageRegistry.Msg
+    | ImageRegistryMsg ImageRegistryMsg
+
+
+type ImageRegistryMsg
+    = ToggleInsecure
+    | ChangeRegistryName String
 
 
 update : Msg -> KieApp -> KieApp
@@ -100,8 +105,18 @@ update msg kieApp =
                             Nothing
             }
 
-        ImageRegistryMsg imageRegistryMessage ->
-            { kieApp | imageRegistry = ImageRegistry.mapImageRegistryEvent imageRegistryMessage kieApp.imageRegistry }
+        ImageRegistryMsg imageRegistryMsg ->
+            { kieApp | imageRegistry = updateImageRegistry imageRegistryMsg kieApp.imageRegistry }
+
+
+updateImageRegistry : ImageRegistryMsg -> ImageRegistry.ImageRegistry -> ImageRegistry.ImageRegistry
+updateImageRegistry imageRegistryMsg imageRegistry =
+    case imageRegistryMsg of
+        ToggleInsecure ->
+            { imageRegistry | insecure = not imageRegistry.insecure }
+
+        ChangeRegistryName newRegistryName ->
+            { imageRegistry | registry = newRegistryName }
 
 
 
@@ -116,7 +131,7 @@ view kieApp =
          ]
             ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
             ++ getServerView kieApp
-            ++ ImageRegistry.getImageRegistryView kieApp.imageRegistry ImageRegistryMsg
+            ++ getImageRegistryView kieApp.imageRegistry
             ++ [ div [] [ textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
         )
 
@@ -129,6 +144,21 @@ getServerView kieApp =
 
         Nothing ->
             []
+
+
+getImageRegistryView : ImageRegistry.ImageRegistry -> List (Html Msg)
+getImageRegistryView imageRegistry =
+    [ Html.form []
+        [ Html.fieldset []
+            [ Html.legend [] [ text "Image registry configuration" ]
+            , input [ type_ "checkbox", checked imageRegistry.insecure, onClick (ImageRegistryMsg ToggleInsecure) ] []
+            , text "Insecure registry"
+            , Html.br [] []
+            , text "Registry for Kie images: "
+            , input [ placeholder "Registry", value imageRegistry.registry, onInput (ChangeRegistryName >> ImageRegistryMsg) ] []
+            ]
+        ]
+    ]
 
 
 getKieAppAsYaml : KieApp -> String
