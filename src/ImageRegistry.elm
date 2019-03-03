@@ -24,15 +24,11 @@ emptyImageRegistry =
 
 getImageRegistryAsYaml : ImageRegistry -> String
 getImageRegistryAsYaml imageRegistry =
-    if String.length imageRegistry.registry > 0 then
-        "  imageRegistry:\n"
-            ++ getInsecureAsYaml imageRegistry
-            ++ "    registry: "
-            ++ imageRegistry.registry
-            ++ "\n"
-
-    else
-        ""
+    "  imageRegistry:\n"
+        ++ getInsecureAsYaml imageRegistry
+        ++ "    registry: "
+        ++ imageRegistry.registry
+        ++ "\n"
 
 
 getInsecureAsYaml : ImageRegistry -> String
