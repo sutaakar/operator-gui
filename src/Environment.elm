@@ -147,7 +147,7 @@ getEnvironmentView msg environment =
 
 toEnvironmentOption : Environment -> Environment -> Html msg
 toEnvironmentOption selectedEnvironment environment =
-    option [ Html.Attributes.selected (selectedEnvironment == environment), value (getEnvironmentName environment) ] [ text (getEnvironmentName environment) ]
+    option [ Html.Attributes.selected (getEnvironmentName selectedEnvironment == getEnvironmentName environment), value (getEnvironmentName environment) ] [ text (getEnvironmentName environment) ]
 
 
 
