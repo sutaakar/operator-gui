@@ -55,7 +55,7 @@ containsServer kieApp =
 
 type Msg
     = ChangeName String
-    | SelectEnvironment String
+    | EnvironmentMsg Environment.Msg
     | ToggleServer
     | ServerMsg Server.Msg
     | ImageRegistryMsg ImageRegistryMsg
@@ -72,15 +72,9 @@ update msg kieApp =
         ChangeName newName ->
             { kieApp | name = newName }
 
-        SelectEnvironment newEnvironmentName ->
+        EnvironmentMsg environmentMessage ->
             { kieApp
-                | environment =
-                    case Environment.getEnvironmentFromName newEnvironmentName of
-                        Nothing ->
-                            Environment.rhdm_trial
-
-                        Just newEnvironment ->
-                            newEnvironment
+                | environment = updateEnvironment environmentMessage
             }
 
         ToggleServer ->
@@ -109,6 +103,11 @@ update msg kieApp =
             { kieApp | imageRegistry = updateImageRegistry imageRegistryMsg }
 
 
+updateEnvironment : Environment.Msg -> Environment.Environment
+updateEnvironment environmentMsg =
+    Environment.mapEnvironmentEvent environmentMsg
+
+
 updateImageRegistry : ImageRegistryMsg -> Maybe ImageRegistry.ImageRegistry
 updateImageRegistry imageRegistryMsg =
     case imageRegistryMsg of
@@ -131,8 +130,8 @@ view : KieApp -> Html Msg
 view kieApp =
     div []
         ([ div [] [ text "Kie app name: ", input [ placeholder "Kie app name", value kieApp.name, onInput ChangeName ] [] ]
-         , div [] [ text "Environment: ", Environment.getEnvironmentDropdownList kieApp.environment SelectEnvironment ]
          ]
+            ++ Environment.getEnvironmentView EnvironmentMsg kieApp.environment
             ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
             ++ getServerView kieApp
             ++ getImageRegistryView kieApp
@@ -193,9 +192,7 @@ getKieAppAsYaml kieApp =
         ++ kieApp.name
         ++ "\n"
         ++ "spec:\n"
-        ++ "  environment: "
-        ++ Environment.getEnvironmentName kieApp.environment
-        ++ "\n"
+        ++ Environment.getEnvironmentAsYaml kieApp.environment
         ++ getObjectsAsYaml kieApp
         ++ getServerAsYaml kieApp
         ++ getImageRegistryAsYaml kieApp

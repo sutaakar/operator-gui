@@ -1,6 +1,6 @@
-module Environment exposing (Environment, environments, getEnvironmentDropdownList, getEnvironmentFromName, getEnvironmentName, rhdm_trial)
+module Environment exposing (Environment, Msg, getEnvironmentAsYaml, getEnvironmentView, mapEnvironmentEvent, rhdm_trial)
 
-import Html exposing (Attribute, Html, option, select, text)
+import Html exposing (Attribute, Html, div, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 
@@ -117,14 +117,45 @@ getEnvironmentFromName environmentName =
 
 
 
+-- UPDATE
+
+
+type Msg
+    = SelectEnvironment String
+
+
+mapEnvironmentEvent : Msg -> Environment
+mapEnvironmentEvent msg =
+    case msg of
+        SelectEnvironment newEnvironmentName ->
+            case getEnvironmentFromName newEnvironmentName of
+                Nothing ->
+                    rhdm_trial
+
+                Just newEnvironment ->
+                    newEnvironment
+
+
+
 -- VIEW
 
 
-getEnvironmentDropdownList : Environment -> (String -> msg) -> Html msg
-getEnvironmentDropdownList selectedEnvironment msg =
-    select [ onInput msg ] (List.map (toEnvironmentOption selectedEnvironment) environments)
+getEnvironmentView : (Msg -> msg) -> Environment -> List (Html msg)
+getEnvironmentView msg environment =
+    [ div [] [ text "Environment: ", select [ onInput (SelectEnvironment >> msg) ] (List.map (toEnvironmentOption environment) environments) ] ]
 
 
 toEnvironmentOption : Environment -> Environment -> Html msg
 toEnvironmentOption selectedEnvironment environment =
     option [ Html.Attributes.selected (selectedEnvironment == environment), value (getEnvironmentName environment) ] [ text (getEnvironmentName environment) ]
+
+
+
+-- YAML
+
+
+getEnvironmentAsYaml : Environment -> String
+getEnvironmentAsYaml environment =
+    "  environment: "
+        ++ getEnvironmentName environment
+        ++ "\n"
