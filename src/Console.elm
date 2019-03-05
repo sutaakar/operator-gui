@@ -1,6 +1,6 @@
 module Console exposing (Console, Msg, emptyConsole, getConsoleAsYaml, getConsoleView, getConsoleViewEmpty, mapConsoleEvent)
 
-import Html exposing (Attribute, Html, div, input, option, select, text)
+import Html exposing (Attribute, Html, br, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 
@@ -18,6 +18,8 @@ type alias EnvItem =
 type alias SsoClient =
     { name : String
     , secret : String
+    , hostnameHttp : String
+    , hostnameHttps : String
     }
 
 
@@ -45,6 +47,8 @@ type Msg
     | AddNewSssoClientName String
     | UpdateExistingSsoClientName SsoClient String
     | UpdateExistingSsoSecret SsoClient String
+    | UpdateExistingSsoHostnameHttp SsoClient String
+    | UpdateExistingSsoHostnameHttps SsoClient String
 
 
 mapConsoleEvent : Msg -> Console -> Maybe Console
@@ -70,7 +74,7 @@ mapConsoleEvent msg console =
             Just { console | env = Just (updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | value = newEnvVariableValue }) envVariables) }
 
         AddNewSssoClientName newSsoClientName ->
-            Just { console | ssoClient = Just { name = newSsoClientName, secret = "" } }
+            Just { console | ssoClient = Just { name = newSsoClientName, secret = "", hostnameHttp = "", hostnameHttps = "" } }
 
         UpdateExistingSsoClientName updatedSsoClient updatedSsoClientName ->
             if String.length updatedSsoClientName == 0 then
@@ -81,6 +85,12 @@ mapConsoleEvent msg console =
 
         UpdateExistingSsoSecret updatedSsoClient updatedSsoSecret ->
             Just { console | ssoClient = Just { updatedSsoClient | secret = updatedSsoSecret } }
+
+        UpdateExistingSsoHostnameHttp updatedSsoClient updatedSsoHostnameHttp ->
+            Just { console | ssoClient = Just { updatedSsoClient | hostnameHttp = updatedSsoHostnameHttp } }
+
+        UpdateExistingSsoHostnameHttps updatedSsoClient updatedSsoHostnameHttps ->
+            Just { console | ssoClient = Just { updatedSsoClient | hostnameHttps = updatedSsoHostnameHttps } }
 
 
 updateEnvItemInList : EnvItem -> (EnvItem -> EnvItem) -> List EnvItem -> List EnvItem
@@ -181,6 +191,11 @@ getSsoClientView msg console =
             , input [ placeholder "Name", value ssoClient.name, onInput (UpdateExistingSsoClientName ssoClient >> msg) ] []
             , text "SSO secret: "
             , input [ placeholder "Secret", value ssoClient.secret, onInput (UpdateExistingSsoSecret ssoClient >> msg) ] []
+            , br [] []
+            , text "HTTP redirect URL hostname: "
+            , input [ placeholder "Hostname redirect URL", value ssoClient.hostnameHttp, onInput (UpdateExistingSsoHostnameHttp ssoClient >> msg) ] []
+            , text "HTTPS redirect URL hostname: "
+            , input [ placeholder "Secure hostname redirect URL", value ssoClient.hostnameHttps, onInput (UpdateExistingSsoHostnameHttps ssoClient >> msg) ] []
             ]
 
         Nothing ->
@@ -223,6 +238,12 @@ getSsoClientAsYaml console =
                 ++ "\n"
                 ++ "        secret: "
                 ++ ssoClient.secret
+                ++ "\n"
+                ++ "        hostnameHTTP: "
+                ++ ssoClient.hostnameHttp
+                ++ "\n"
+                ++ "        hostnameHTTPS: "
+                ++ ssoClient.hostnameHttps
                 ++ "\n"
 
         Nothing ->
