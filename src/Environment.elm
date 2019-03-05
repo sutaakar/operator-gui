@@ -186,7 +186,17 @@ getEnvironmentAsYaml environment =
     "  environment: "
         ++ getEnvironmentName environment
         ++ "\n"
-        ++ getConsoleAsYaml environment
+        ++ getObjectsAsYaml environment
+
+
+getObjectsAsYaml : Environment -> String
+getObjectsAsYaml environment =
+    case getConsoleAsYaml environment of
+        "" ->
+            ""
+
+        contentOfObjects ->
+            "  objects:\n" ++ contentOfObjects
 
 
 getConsoleAsYaml : Environment -> String
