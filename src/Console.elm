@@ -15,14 +15,21 @@ type alias EnvItem =
     }
 
 
+type alias SsoClient =
+    { name : String
+    }
+
+
 type alias Console =
     { env : Maybe (List EnvItem)
+    , ssoClient : Maybe SsoClient
     }
 
 
 emptyConsole : Console
 emptyConsole =
     { env = Nothing
+    , ssoClient = Nothing
     }
 
 
@@ -34,6 +41,8 @@ type Msg
     = AddNewEnvVariable String
     | UpdateExistingEnvVariableName EnvItem (List EnvItem) String
     | UpdateExistingEnvVariableValue EnvItem (List EnvItem) String
+    | AddNewSssoClientName String
+    | UpdateExistingSssoClientName SsoClient String
 
 
 mapConsoleEvent : Msg -> Console -> Maybe Console
@@ -50,13 +59,23 @@ mapConsoleEvent msg console =
         UpdateExistingEnvVariableName updatedEnvVariable envVariables newEnvVariableName ->
             case updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | name = newEnvVariableName }) envVariables of
                 [] ->
-                    Nothing
+                    { console | env = Nothing } |> checkConsoleContent
 
                 xs ->
                     Just { console | env = Just xs }
 
         UpdateExistingEnvVariableValue updatedEnvVariable envVariables newEnvVariableValue ->
             Just { console | env = Just (updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | value = newEnvVariableValue }) envVariables) }
+
+        AddNewSssoClientName newSssoClientName ->
+            Just { console | ssoClient = Just { name = newSssoClientName } }
+
+        UpdateExistingSssoClientName updatedSsoClient updatedSssoClientName ->
+            if String.length updatedSssoClientName == 0 then
+                { console | ssoClient = Nothing } |> checkConsoleContent
+
+            else
+                Just { console | ssoClient = Just { updatedSsoClient | name = updatedSssoClientName } }
 
 
 updateEnvItemInList : EnvItem -> (EnvItem -> EnvItem) -> List EnvItem -> List EnvItem
@@ -74,6 +93,34 @@ updateSingleEnvItem envItemUpdateFunction updatedItem itemFromList =
         itemFromList
 
 
+checkConsoleContent : Console -> Maybe Console
+checkConsoleContent console =
+    let
+        checkEnvVariablesExistence : Bool
+        checkEnvVariablesExistence =
+            case console.env of
+                Just envItemList ->
+                    True
+
+                Nothing ->
+                    False
+
+        checkSsoClientExistence : Bool
+        checkSsoClientExistence =
+            case console.ssoClient of
+                Just ssoClient ->
+                    True
+
+                Nothing ->
+                    False
+    in
+    if checkEnvVariablesExistence || checkSsoClientExistence then
+        Just console
+
+    else
+        Nothing
+
+
 
 -- VIEW
 
@@ -88,6 +135,7 @@ getConsoleView msg console =
     [ Html.fieldset []
         ([ Html.legend [] [ text "Monitoring console configuration" ] ]
             ++ getEnvVariableView msg console
+            ++ getSsoClientView msg console
         )
     ]
 
@@ -120,6 +168,20 @@ getLastEnvVariableView msg =
         ]
 
 
+getSsoClientView : (Msg -> msg) -> Console -> List (Html msg)
+getSsoClientView msg console =
+    case console.ssoClient of
+        Just ssoClient ->
+            [ text "SSO client name: "
+            , input [ placeholder "Name", value ssoClient.name, onInput (UpdateExistingSssoClientName ssoClient >> msg) ] []
+            ]
+
+        Nothing ->
+            [ text "SSO client name: "
+            , input [ placeholder "Name", onInput (AddNewSssoClientName >> msg) ] []
+            ]
+
+
 
 -- YAML
 
@@ -128,6 +190,7 @@ getConsoleAsYaml : Console -> String
 getConsoleAsYaml console =
     "    console:\n"
         ++ getEnvAsYaml console
+        ++ getSsoClientAsYaml console
 
 
 getEnvAsYaml : Console -> String
@@ -138,6 +201,19 @@ getEnvAsYaml console =
                 ++ (List.map (\envItem -> "        - name: " ++ envItem.name ++ "\n          value: \"" ++ envItem.value ++ "\"\n") envItemList
                         |> List.foldr (++) ""
                    )
+
+        Nothing ->
+            ""
+
+
+getSsoClientAsYaml : Console -> String
+getSsoClientAsYaml console =
+    case console.ssoClient of
+        Just ssoClient ->
+            "      ssoClient:\n"
+                ++ "        name: "
+                ++ ssoClient.name
+                ++ "\n"
 
         Nothing ->
             ""
