@@ -17,6 +17,7 @@ type alias EnvItem =
 
 type alias SsoClient =
     { name : String
+    , secret : String
     }
 
 
@@ -42,7 +43,8 @@ type Msg
     | UpdateExistingEnvVariableName EnvItem (List EnvItem) String
     | UpdateExistingEnvVariableValue EnvItem (List EnvItem) String
     | AddNewSssoClientName String
-    | UpdateExistingSssoClientName SsoClient String
+    | UpdateExistingSsoClientName SsoClient String
+    | UpdateExistingSsoSecret SsoClient String
 
 
 mapConsoleEvent : Msg -> Console -> Maybe Console
@@ -67,15 +69,18 @@ mapConsoleEvent msg console =
         UpdateExistingEnvVariableValue updatedEnvVariable envVariables newEnvVariableValue ->
             Just { console | env = Just (updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | value = newEnvVariableValue }) envVariables) }
 
-        AddNewSssoClientName newSssoClientName ->
-            Just { console | ssoClient = Just { name = newSssoClientName } }
+        AddNewSssoClientName newSsoClientName ->
+            Just { console | ssoClient = Just { name = newSsoClientName, secret = "" } }
 
-        UpdateExistingSssoClientName updatedSsoClient updatedSssoClientName ->
-            if String.length updatedSssoClientName == 0 then
+        UpdateExistingSsoClientName updatedSsoClient updatedSsoClientName ->
+            if String.length updatedSsoClientName == 0 then
                 { console | ssoClient = Nothing } |> checkConsoleContent
 
             else
-                Just { console | ssoClient = Just { updatedSsoClient | name = updatedSssoClientName } }
+                Just { console | ssoClient = Just { updatedSsoClient | name = updatedSsoClientName } }
+
+        UpdateExistingSsoSecret updatedSsoClient updatedSsoSecret ->
+            Just { console | ssoClient = Just { updatedSsoClient | secret = updatedSsoSecret } }
 
 
 updateEnvItemInList : EnvItem -> (EnvItem -> EnvItem) -> List EnvItem -> List EnvItem
@@ -173,7 +178,9 @@ getSsoClientView msg console =
     case console.ssoClient of
         Just ssoClient ->
             [ text "SSO client name: "
-            , input [ placeholder "Name", value ssoClient.name, onInput (UpdateExistingSssoClientName ssoClient >> msg) ] []
+            , input [ placeholder "Name", value ssoClient.name, onInput (UpdateExistingSsoClientName ssoClient >> msg) ] []
+            , text "SSO secret: "
+            , input [ placeholder "Secret", value ssoClient.secret, onInput (UpdateExistingSsoSecret ssoClient >> msg) ] []
             ]
 
         Nothing ->
@@ -213,6 +220,9 @@ getSsoClientAsYaml console =
             "      ssoClient:\n"
                 ++ "        name: "
                 ++ ssoClient.name
+                ++ "\n"
+                ++ "        secret: "
+                ++ ssoClient.secret
                 ++ "\n"
 
         Nothing ->
