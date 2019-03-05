@@ -74,7 +74,7 @@ update msg kieApp =
 
         EnvironmentMsg environmentMessage ->
             { kieApp
-                | environment = updateEnvironment environmentMessage
+                | environment = updateEnvironment environmentMessage kieApp.environment
             }
 
         ToggleServer ->
@@ -103,9 +103,9 @@ update msg kieApp =
             { kieApp | imageRegistry = updateImageRegistry imageRegistryMsg }
 
 
-updateEnvironment : Environment.Msg -> Environment.Environment
-updateEnvironment environmentMsg =
-    Environment.mapEnvironmentEvent environmentMsg
+updateEnvironment : Environment.Msg -> Environment.Environment -> Environment.Environment
+updateEnvironment environmentMsg environment =
+    Environment.mapEnvironmentEvent environmentMsg environment
 
 
 updateImageRegistry : ImageRegistryMsg -> Maybe ImageRegistry.ImageRegistry
