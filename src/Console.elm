@@ -1,4 +1,4 @@
-module Console exposing (Console, Msg, emptyConsole, getConsoleAsYaml, getConsoleView, getConsoleViewEmpty, mapConsoleEvent)
+module Console exposing (Console, Msg, emptyConsole, getConsoleAsYaml, getConsoleView, mapConsoleEvent)
 
 import Html exposing (Attribute, Html, br, div, input, option, select, text)
 import Html.Attributes exposing (..)
@@ -138,11 +138,6 @@ checkConsoleContent console =
 
 
 -- VIEW
-
-
-getConsoleViewEmpty : (Msg -> msg) -> List (Html msg)
-getConsoleViewEmpty msg =
-    getConsoleView msg emptyConsole
 
 
 getConsoleView : (Msg -> msg) -> Console -> List (Html msg)

@@ -166,7 +166,7 @@ getConsoleView msg environment =
             Console.getConsoleView (ConsoleMsg >> msg) console
 
         Rhdm_trial _ Nothing ->
-            Console.getConsoleViewEmpty (ConsoleMsg >> msg)
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
         _ ->
             []
