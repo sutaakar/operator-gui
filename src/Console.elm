@@ -11,6 +11,7 @@ import Html.Events exposing (onInput)
 
 type alias EnvItem =
     { name : String
+    , value : String
     }
 
 
@@ -32,6 +33,7 @@ emptyConsole =
 type Msg
     = AddNewEnvVariable String
     | UpdateExistingEnvVariableName EnvItem (List EnvItem) String
+    | UpdateExistingEnvVariableValue EnvItem (List EnvItem) String
 
 
 mapConsoleEvent : Msg -> Console -> Maybe Console
@@ -40,10 +42,10 @@ mapConsoleEvent msg console =
         AddNewEnvVariable newEnvVariableName ->
             case console.env of
                 Just envItemList ->
-                    Just { console | env = Just (envItemList ++ [ { name = newEnvVariableName } ]) }
+                    Just { console | env = Just (envItemList ++ [ { name = newEnvVariableName, value = "" } ]) }
 
                 Nothing ->
-                    Just { console | env = Just [ { name = newEnvVariableName } ] }
+                    Just { console | env = Just [ { name = newEnvVariableName, value = "" } ] }
 
         UpdateExistingEnvVariableName updatedEnvVariable envVariables newEnvVariableName ->
             case updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | name = newEnvVariableName }) envVariables of
@@ -52,6 +54,9 @@ mapConsoleEvent msg console =
 
                 xs ->
                     Just { console | env = Just xs }
+
+        UpdateExistingEnvVariableValue updatedEnvVariable envVariables newEnvVariableValue ->
+            Just { console | env = Just (updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | value = newEnvVariableValue }) envVariables) }
 
 
 updateEnvItemInList : EnvItem -> (EnvItem -> EnvItem) -> List EnvItem -> List EnvItem
@@ -93,6 +98,8 @@ getSingleEnvVariableView msg envItemList envItem =
     div []
         [ text "Env variable name: "
         , input [ placeholder "Name", value envItem.name, onInput (UpdateExistingEnvVariableName envItem envItemList >> msg) ] []
+        , text "Env variable value: "
+        , input [ placeholder "Value", value envItem.value, onInput (UpdateExistingEnvVariableValue envItem envItemList >> msg) ] []
         ]
 
 
@@ -119,7 +126,7 @@ getEnvAsYaml console =
     case console.env of
         Just envItemList ->
             "      env:\n"
-                ++ (List.map (\envItem -> "        - name: " ++ envItem.name ++ "\n") envItemList
+                ++ (List.map (\envItem -> "        - name: " ++ envItem.name ++ "\n          value: \"" ++ envItem.value ++ "\"\n") envItemList
                         |> List.foldr (++) ""
                    )
 
