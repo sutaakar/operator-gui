@@ -90,6 +90,271 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
 console.warn('Compiled in DEV mode. Follow the advice at https://elm-lang.org/0.19.0/optimize for better performance and smaller assets.');
 
 
+var _List_Nil_UNUSED = { $: 0 };
+var _List_Nil = { $: '[]' };
+
+function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
+function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
+
+
+var _List_cons = F2(_List_Cons);
+
+function _List_fromArray(arr)
+{
+	var out = _List_Nil;
+	for (var i = arr.length; i--; )
+	{
+		out = _List_Cons(arr[i], out);
+	}
+	return out;
+}
+
+function _List_toArray(xs)
+{
+	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		out.push(xs.a);
+	}
+	return out;
+}
+
+var _List_map2 = F3(function(f, xs, ys)
+{
+	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
+	{
+		arr.push(A2(f, xs.a, ys.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map3 = F4(function(f, xs, ys, zs)
+{
+	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A3(f, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map4 = F5(function(f, ws, xs, ys, zs)
+{
+	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
+{
+	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_sortBy = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		return _Utils_cmp(f(a), f(b));
+	}));
+});
+
+var _List_sortWith = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		var ord = A2(f, a, b);
+		return ord === elm$core$Basics$EQ ? 0 : ord === elm$core$Basics$LT ? -1 : 1;
+	}));
+});
+
+
+
+// EQUALITY
+
+function _Utils_eq(x, y)
+{
+	for (
+		var pair, stack = [], isEqual = _Utils_eqHelp(x, y, 0, stack);
+		isEqual && (pair = stack.pop());
+		isEqual = _Utils_eqHelp(pair.a, pair.b, 0, stack)
+		)
+	{}
+
+	return isEqual;
+}
+
+function _Utils_eqHelp(x, y, depth, stack)
+{
+	if (depth > 100)
+	{
+		stack.push(_Utils_Tuple2(x,y));
+		return true;
+	}
+
+	if (x === y)
+	{
+		return true;
+	}
+
+	if (typeof x !== 'object' || x === null || y === null)
+	{
+		typeof x === 'function' && _Debug_crash(5);
+		return false;
+	}
+
+	/**/
+	if (x.$ === 'Set_elm_builtin')
+	{
+		x = elm$core$Set$toList(x);
+		y = elm$core$Set$toList(y);
+	}
+	if (x.$ === 'RBNode_elm_builtin' || x.$ === 'RBEmpty_elm_builtin')
+	{
+		x = elm$core$Dict$toList(x);
+		y = elm$core$Dict$toList(y);
+	}
+	//*/
+
+	/**_UNUSED/
+	if (x.$ < 0)
+	{
+		x = elm$core$Dict$toList(x);
+		y = elm$core$Dict$toList(y);
+	}
+	//*/
+
+	for (var key in x)
+	{
+		if (!_Utils_eqHelp(x[key], y[key], depth + 1, stack))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+var _Utils_equal = F2(_Utils_eq);
+var _Utils_notEqual = F2(function(a, b) { return !_Utils_eq(a,b); });
+
+
+
+// COMPARISONS
+
+// Code in Generate/JavaScript.hs, Basics.js, and List.js depends on
+// the particular integer values assigned to LT, EQ, and GT.
+
+function _Utils_cmp(x, y, ord)
+{
+	if (typeof x !== 'object')
+	{
+		return x === y ? /*EQ*/ 0 : x < y ? /*LT*/ -1 : /*GT*/ 1;
+	}
+
+	/**/
+	if (x instanceof String)
+	{
+		var a = x.valueOf();
+		var b = y.valueOf();
+		return a === b ? 0 : a < b ? -1 : 1;
+	}
+	//*/
+
+	/**_UNUSED/
+	if (typeof x.$ === 'undefined')
+	//*/
+	/**/
+	if (x.$[0] === '#')
+	//*/
+	{
+		return (ord = _Utils_cmp(x.a, y.a))
+			? ord
+			: (ord = _Utils_cmp(x.b, y.b))
+				? ord
+				: _Utils_cmp(x.c, y.c);
+	}
+
+	// traverse conses until end of a list or a mismatch
+	for (; x.b && y.b && !(ord = _Utils_cmp(x.a, y.a)); x = x.b, y = y.b) {} // WHILE_CONSES
+	return ord || (x.b ? /*GT*/ 1 : y.b ? /*LT*/ -1 : /*EQ*/ 0);
+}
+
+var _Utils_lt = F2(function(a, b) { return _Utils_cmp(a, b) < 0; });
+var _Utils_le = F2(function(a, b) { return _Utils_cmp(a, b) < 1; });
+var _Utils_gt = F2(function(a, b) { return _Utils_cmp(a, b) > 0; });
+var _Utils_ge = F2(function(a, b) { return _Utils_cmp(a, b) >= 0; });
+
+var _Utils_compare = F2(function(x, y)
+{
+	var n = _Utils_cmp(x, y);
+	return n < 0 ? elm$core$Basics$LT : n ? elm$core$Basics$GT : elm$core$Basics$EQ;
+});
+
+
+// COMMON VALUES
+
+var _Utils_Tuple0_UNUSED = 0;
+var _Utils_Tuple0 = { $: '#0' };
+
+function _Utils_Tuple2_UNUSED(a, b) { return { a: a, b: b }; }
+function _Utils_Tuple2(a, b) { return { $: '#2', a: a, b: b }; }
+
+function _Utils_Tuple3_UNUSED(a, b, c) { return { a: a, b: b, c: c }; }
+function _Utils_Tuple3(a, b, c) { return { $: '#3', a: a, b: b, c: c }; }
+
+function _Utils_chr_UNUSED(c) { return c; }
+function _Utils_chr(c) { return new String(c); }
+
+
+// RECORDS
+
+function _Utils_update(oldRecord, updatedFields)
+{
+	var newRecord = {};
+
+	for (var key in oldRecord)
+	{
+		newRecord[key] = oldRecord[key];
+	}
+
+	for (var key in updatedFields)
+	{
+		newRecord[key] = updatedFields[key];
+	}
+
+	return newRecord;
+}
+
+
+// APPEND
+
+var _Utils_append = F2(_Utils_ap);
+
+function _Utils_ap(xs, ys)
+{
+	// append Strings
+	if (typeof xs === 'string')
+	{
+		return xs + ys;
+	}
+
+	// append Lists
+	if (!xs.b)
+	{
+		return ys;
+	}
+	var root = _List_Cons(xs.a, ys);
+	xs = xs.b
+	for (var curr = root; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		curr = curr.b = _List_Cons(xs.a, ys);
+	}
+	return root;
+}
+
+
+
 var _JsArray_empty = [];
 
 function _JsArray_singleton(value)
@@ -535,271 +800,6 @@ function _Debug_regionToString(region)
 	}
 	return 'on lines ' + region.start.line + ' through ' + region.end.line;
 }
-
-
-
-// EQUALITY
-
-function _Utils_eq(x, y)
-{
-	for (
-		var pair, stack = [], isEqual = _Utils_eqHelp(x, y, 0, stack);
-		isEqual && (pair = stack.pop());
-		isEqual = _Utils_eqHelp(pair.a, pair.b, 0, stack)
-		)
-	{}
-
-	return isEqual;
-}
-
-function _Utils_eqHelp(x, y, depth, stack)
-{
-	if (depth > 100)
-	{
-		stack.push(_Utils_Tuple2(x,y));
-		return true;
-	}
-
-	if (x === y)
-	{
-		return true;
-	}
-
-	if (typeof x !== 'object' || x === null || y === null)
-	{
-		typeof x === 'function' && _Debug_crash(5);
-		return false;
-	}
-
-	/**/
-	if (x.$ === 'Set_elm_builtin')
-	{
-		x = elm$core$Set$toList(x);
-		y = elm$core$Set$toList(y);
-	}
-	if (x.$ === 'RBNode_elm_builtin' || x.$ === 'RBEmpty_elm_builtin')
-	{
-		x = elm$core$Dict$toList(x);
-		y = elm$core$Dict$toList(y);
-	}
-	//*/
-
-	/**_UNUSED/
-	if (x.$ < 0)
-	{
-		x = elm$core$Dict$toList(x);
-		y = elm$core$Dict$toList(y);
-	}
-	//*/
-
-	for (var key in x)
-	{
-		if (!_Utils_eqHelp(x[key], y[key], depth + 1, stack))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-var _Utils_equal = F2(_Utils_eq);
-var _Utils_notEqual = F2(function(a, b) { return !_Utils_eq(a,b); });
-
-
-
-// COMPARISONS
-
-// Code in Generate/JavaScript.hs, Basics.js, and List.js depends on
-// the particular integer values assigned to LT, EQ, and GT.
-
-function _Utils_cmp(x, y, ord)
-{
-	if (typeof x !== 'object')
-	{
-		return x === y ? /*EQ*/ 0 : x < y ? /*LT*/ -1 : /*GT*/ 1;
-	}
-
-	/**/
-	if (x instanceof String)
-	{
-		var a = x.valueOf();
-		var b = y.valueOf();
-		return a === b ? 0 : a < b ? -1 : 1;
-	}
-	//*/
-
-	/**_UNUSED/
-	if (typeof x.$ === 'undefined')
-	//*/
-	/**/
-	if (x.$[0] === '#')
-	//*/
-	{
-		return (ord = _Utils_cmp(x.a, y.a))
-			? ord
-			: (ord = _Utils_cmp(x.b, y.b))
-				? ord
-				: _Utils_cmp(x.c, y.c);
-	}
-
-	// traverse conses until end of a list or a mismatch
-	for (; x.b && y.b && !(ord = _Utils_cmp(x.a, y.a)); x = x.b, y = y.b) {} // WHILE_CONSES
-	return ord || (x.b ? /*GT*/ 1 : y.b ? /*LT*/ -1 : /*EQ*/ 0);
-}
-
-var _Utils_lt = F2(function(a, b) { return _Utils_cmp(a, b) < 0; });
-var _Utils_le = F2(function(a, b) { return _Utils_cmp(a, b) < 1; });
-var _Utils_gt = F2(function(a, b) { return _Utils_cmp(a, b) > 0; });
-var _Utils_ge = F2(function(a, b) { return _Utils_cmp(a, b) >= 0; });
-
-var _Utils_compare = F2(function(x, y)
-{
-	var n = _Utils_cmp(x, y);
-	return n < 0 ? elm$core$Basics$LT : n ? elm$core$Basics$GT : elm$core$Basics$EQ;
-});
-
-
-// COMMON VALUES
-
-var _Utils_Tuple0_UNUSED = 0;
-var _Utils_Tuple0 = { $: '#0' };
-
-function _Utils_Tuple2_UNUSED(a, b) { return { a: a, b: b }; }
-function _Utils_Tuple2(a, b) { return { $: '#2', a: a, b: b }; }
-
-function _Utils_Tuple3_UNUSED(a, b, c) { return { a: a, b: b, c: c }; }
-function _Utils_Tuple3(a, b, c) { return { $: '#3', a: a, b: b, c: c }; }
-
-function _Utils_chr_UNUSED(c) { return c; }
-function _Utils_chr(c) { return new String(c); }
-
-
-// RECORDS
-
-function _Utils_update(oldRecord, updatedFields)
-{
-	var newRecord = {};
-
-	for (var key in oldRecord)
-	{
-		newRecord[key] = oldRecord[key];
-	}
-
-	for (var key in updatedFields)
-	{
-		newRecord[key] = updatedFields[key];
-	}
-
-	return newRecord;
-}
-
-
-// APPEND
-
-var _Utils_append = F2(_Utils_ap);
-
-function _Utils_ap(xs, ys)
-{
-	// append Strings
-	if (typeof xs === 'string')
-	{
-		return xs + ys;
-	}
-
-	// append Lists
-	if (!xs.b)
-	{
-		return ys;
-	}
-	var root = _List_Cons(xs.a, ys);
-	xs = xs.b
-	for (var curr = root; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		curr = curr.b = _List_Cons(xs.a, ys);
-	}
-	return root;
-}
-
-
-
-var _List_Nil_UNUSED = { $: 0 };
-var _List_Nil = { $: '[]' };
-
-function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
-function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
-
-
-var _List_cons = F2(_List_Cons);
-
-function _List_fromArray(arr)
-{
-	var out = _List_Nil;
-	for (var i = arr.length; i--; )
-	{
-		out = _List_Cons(arr[i], out);
-	}
-	return out;
-}
-
-function _List_toArray(xs)
-{
-	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		out.push(xs.a);
-	}
-	return out;
-}
-
-var _List_map2 = F3(function(f, xs, ys)
-{
-	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
-	{
-		arr.push(A2(f, xs.a, ys.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map3 = F4(function(f, xs, ys, zs)
-{
-	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A3(f, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map4 = F5(function(f, ws, xs, ys, zs)
-{
-	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
-{
-	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_sortBy = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		return _Utils_cmp(f(a), f(b));
-	}));
-});
-
-var _List_sortWith = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		var ord = A2(f, a, b);
-		return ord === elm$core$Basics$EQ ? 0 : ord === elm$core$Basics$LT ? -1 : 1;
-	}));
-});
 
 
 
@@ -4320,76 +4320,19 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Environment$Rhdm_trial = function (a) {
-	return {$: 'Rhdm_trial', a: a};
-};
-var author$project$Environment$rhdm_trial = author$project$Environment$Rhdm_trial('rhdm-trial');
-var elm$core$Maybe$Nothing = {$: 'Nothing'};
-var author$project$Main$init = {environment: author$project$Environment$rhdm_trial, imageRegistry: elm$core$Maybe$Nothing, name: 'my-kie-app', server: elm$core$Maybe$Nothing};
-var author$project$Environment$Rhdm_authoring = function (a) {
-	return {$: 'Rhdm_authoring', a: a};
-};
-var author$project$Environment$rhdm_authoring = author$project$Environment$Rhdm_authoring('rhdm-authoring');
-var author$project$Environment$Rhdm_authoring_ha = function (a) {
-	return {$: 'Rhdm_authoring_ha', a: a};
-};
-var author$project$Environment$rhdm_authoring_ha = author$project$Environment$Rhdm_authoring_ha('rhdm-authoring-ha');
-var author$project$Environment$Rhdm_optaweb_trial = function (a) {
-	return {$: 'Rhdm_optaweb_trial', a: a};
-};
-var author$project$Environment$rhdm_optaweb_trial = author$project$Environment$Rhdm_optaweb_trial('rhdm-optaweb-trial');
-var author$project$Environment$Rhdm_production_immutable = function (a) {
-	return {$: 'Rhdm_production_immutable', a: a};
-};
-var author$project$Environment$rhdm_production_immutable = author$project$Environment$Rhdm_production_immutable('rhdm-production-immutable');
-var author$project$Environment$Rhpam_authoring = function (a) {
-	return {$: 'Rhpam_authoring', a: a};
-};
-var author$project$Environment$rhpam_authoring = author$project$Environment$Rhpam_authoring('rhpam-authoring');
-var author$project$Environment$Rhpam_authoring_ha = function (a) {
-	return {$: 'Rhpam_authoring_ha', a: a};
-};
-var author$project$Environment$rhpam_authoring_ha = author$project$Environment$Rhpam_authoring_ha('rhpam-authoring-ha');
-var author$project$Environment$Rhpam_production = function (a) {
-	return {$: 'Rhpam_production', a: a};
-};
-var author$project$Environment$rhpam_production = author$project$Environment$Rhpam_production('rhpam-production');
-var author$project$Environment$Rhpam_production_immutable = function (a) {
-	return {$: 'Rhpam_production_immutable', a: a};
-};
-var author$project$Environment$rhpam_production_immutable = author$project$Environment$Rhpam_production_immutable('rhpam-production-immutable');
-var author$project$Environment$Rhpam_trial = function (a) {
-	return {$: 'Rhpam_trial', a: a};
-};
-var author$project$Environment$rhpam_trial = author$project$Environment$Rhpam_trial('rhpam-trial');
-var elm$core$Basics$EQ = {$: 'EQ'};
-var elm$core$Basics$LT = {$: 'LT'};
-var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
-var elm$core$Array$foldr = F3(
-	function (func, baseCase, _n0) {
-		var tree = _n0.c;
-		var tail = _n0.d;
-		var helper = F2(
-			function (node, acc) {
-				if (node.$ === 'SubTree') {
-					var subTree = node.a;
-					return A3(elm$core$Elm$JsArray$foldr, helper, acc, subTree);
-				} else {
-					var values = node.a;
-					return A3(elm$core$Elm$JsArray$foldr, func, acc, values);
-				}
-			});
-		return A3(
-			elm$core$Elm$JsArray$foldr,
-			helper,
-			A3(elm$core$Elm$JsArray$foldr, func, baseCase, tail),
-			tree);
+var author$project$Environment$Rhdm_trial = F2(
+	function (a, b) {
+		return {$: 'Rhdm_trial', a: a, b: b};
 	});
-var elm$core$List$cons = _List_cons;
-var elm$core$Array$toList = function (array) {
-	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
-};
+var elm$core$Maybe$Nothing = {$: 'Nothing'};
+var author$project$Environment$rhdm_trial = A2(author$project$Environment$Rhdm_trial, 'rhdm-trial', elm$core$Maybe$Nothing);
+var author$project$Main$init = {environment: author$project$Environment$rhdm_trial, imageRegistry: elm$core$Maybe$Nothing, name: 'my-kie-app', server: elm$core$Maybe$Nothing};
+var author$project$Console$emptyConsole = {env: elm$core$Maybe$Nothing, ssoClient: elm$core$Maybe$Nothing};
+var elm$core$Basics$False = {$: 'False'};
+var elm$core$Basics$True = {$: 'True'};
+var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$GT = {$: 'GT'};
+var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$Dict$foldr = F3(
 	function (func, acc, t) {
 		foldr:
@@ -4415,6 +4358,7 @@ var elm$core$Dict$foldr = F3(
 			}
 		}
 	});
+var elm$core$List$cons = _List_cons;
 var elm$core$Dict$toList = function (dict) {
 	return A3(
 		elm$core$Dict$foldr,
@@ -4442,47 +4386,65 @@ var elm$core$Set$toList = function (_n0) {
 	var dict = _n0.a;
 	return elm$core$Dict$keys(dict);
 };
-var author$project$Environment$environments = _List_fromArray(
-	[author$project$Environment$rhdm_authoring_ha, author$project$Environment$rhdm_authoring, author$project$Environment$rhdm_optaweb_trial, author$project$Environment$rhdm_production_immutable, author$project$Environment$rhdm_trial, author$project$Environment$rhpam_authoring_ha, author$project$Environment$rhpam_authoring, author$project$Environment$rhpam_production_immutable, author$project$Environment$rhpam_production, author$project$Environment$rhpam_trial]);
-var author$project$Environment$getEnvironmentName = function (environment) {
-	switch (environment.$) {
-		case 'Rhdm_authoring_ha':
-			var name = environment.a;
-			return name;
-		case 'Rhdm_authoring':
-			var name = environment.a;
-			return name;
-		case 'Rhdm_optaweb_trial':
-			var name = environment.a;
-			return name;
-		case 'Rhdm_production_immutable':
-			var name = environment.a;
-			return name;
-		case 'Rhdm_trial':
-			var name = environment.a;
-			return name;
-		case 'Rhpam_authoring_ha':
-			var name = environment.a;
-			return name;
-		case 'Rhpam_authoring':
-			var name = environment.a;
-			return name;
-		case 'Rhpam_production_immutable':
-			var name = environment.a;
-			return name;
-		case 'Rhpam_production':
-			var name = environment.a;
-			return name;
-		default:
-			var name = environment.a;
-			return name;
-	}
+var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
+var elm$core$Array$foldr = F3(
+	function (func, baseCase, _n0) {
+		var tree = _n0.c;
+		var tail = _n0.d;
+		var helper = F2(
+			function (node, acc) {
+				if (node.$ === 'SubTree') {
+					var subTree = node.a;
+					return A3(elm$core$Elm$JsArray$foldr, helper, acc, subTree);
+				} else {
+					var values = node.a;
+					return A3(elm$core$Elm$JsArray$foldr, func, acc, values);
+				}
+			});
+		return A3(
+			elm$core$Elm$JsArray$foldr,
+			helper,
+			A3(elm$core$Elm$JsArray$foldr, func, baseCase, tail),
+			tree);
+	});
+var elm$core$Array$toList = function (array) {
+	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
 };
+var elm$core$Basics$or = _Basics_or;
+var elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
+};
+var author$project$Console$checkConsoleContent = function (console) {
+	var checkSsoClientExistence = function () {
+		var _n1 = console.ssoClient;
+		if (_n1.$ === 'Just') {
+			var ssoClient = _n1.a;
+			return true;
+		} else {
+			return false;
+		}
+	}();
+	var checkEnvVariablesExistence = function () {
+		var _n0 = console.env;
+		if (_n0.$ === 'Just') {
+			var envItemList = _n0.a;
+			return true;
+		} else {
+			return false;
+		}
+	}();
+	return (checkEnvVariablesExistence || checkSsoClientExistence) ? elm$core$Maybe$Just(console) : elm$core$Maybe$Nothing;
+};
+var elm$core$Basics$eq = _Utils_equal;
+var author$project$Console$updateSingleEnvItem = F3(
+	function (envItemUpdateFunction, updatedItem, itemFromList) {
+		return _Utils_eq(updatedItem, itemFromList) ? envItemUpdateFunction(itemFromList) : itemFromList;
+	});
 var elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
 	});
-var elm$core$Basics$eq = _Utils_equal;
+var elm$core$Basics$not = _Basics_not;
 var elm$core$Basics$add = _Basics_add;
 var elm$core$Basics$gt = _Utils_gt;
 var elm$core$List$foldl = F3(
@@ -4573,8 +4535,248 @@ var elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
+var elm$core$String$isEmpty = function (string) {
+	return string === '';
+};
+var author$project$Console$updateEnvItemInList = F3(
+	function (updatedItem, envItemUpdateFunction, envItems) {
+		return A2(
+			elm$core$List$filter,
+			function (envItem) {
+				return !elm$core$String$isEmpty(envItem.name);
+			},
+			A2(
+				elm$core$List$map,
+				A2(author$project$Console$updateSingleEnvItem, envItemUpdateFunction, updatedItem),
+				envItems));
+	});
+var elm$core$Basics$append = _Utils_append;
+var elm$core$String$length = _String_length;
+var author$project$Console$mapConsoleEvent = F2(
+	function (msg, console) {
+		switch (msg.$) {
+			case 'AddNewEnvVariable':
+				var newEnvVariableName = msg.a;
+				var _n1 = console.env;
+				if (_n1.$ === 'Just') {
+					var envItemList = _n1.a;
+					return elm$core$Maybe$Just(
+						_Utils_update(
+							console,
+							{
+								env: elm$core$Maybe$Just(
+									_Utils_ap(
+										envItemList,
+										_List_fromArray(
+											[
+												{name: newEnvVariableName, value: ''}
+											])))
+							}));
+				} else {
+					return elm$core$Maybe$Just(
+						_Utils_update(
+							console,
+							{
+								env: elm$core$Maybe$Just(
+									_List_fromArray(
+										[
+											{name: newEnvVariableName, value: ''}
+										]))
+							}));
+				}
+			case 'UpdateExistingEnvVariableName':
+				var updatedEnvVariable = msg.a;
+				var envVariables = msg.b;
+				var newEnvVariableName = msg.c;
+				var _n2 = A3(
+					author$project$Console$updateEnvItemInList,
+					updatedEnvVariable,
+					function (envItem) {
+						return _Utils_update(
+							envItem,
+							{name: newEnvVariableName});
+					},
+					envVariables);
+				if (!_n2.b) {
+					return author$project$Console$checkConsoleContent(
+						_Utils_update(
+							console,
+							{env: elm$core$Maybe$Nothing}));
+				} else {
+					var xs = _n2;
+					return elm$core$Maybe$Just(
+						_Utils_update(
+							console,
+							{
+								env: elm$core$Maybe$Just(xs)
+							}));
+				}
+			case 'UpdateExistingEnvVariableValue':
+				var updatedEnvVariable = msg.a;
+				var envVariables = msg.b;
+				var newEnvVariableValue = msg.c;
+				return elm$core$Maybe$Just(
+					_Utils_update(
+						console,
+						{
+							env: elm$core$Maybe$Just(
+								A3(
+									author$project$Console$updateEnvItemInList,
+									updatedEnvVariable,
+									function (envItem) {
+										return _Utils_update(
+											envItem,
+											{value: newEnvVariableValue});
+									},
+									envVariables))
+						}));
+			case 'AddNewSssoClientName':
+				var newSsoClientName = msg.a;
+				return elm$core$Maybe$Just(
+					_Utils_update(
+						console,
+						{
+							ssoClient: elm$core$Maybe$Just(
+								{hostnameHttp: '', hostnameHttps: '', name: newSsoClientName, secret: ''})
+						}));
+			case 'UpdateExistingSsoClientName':
+				var updatedSsoClient = msg.a;
+				var updatedSsoClientName = msg.b;
+				return (!elm$core$String$length(updatedSsoClientName)) ? author$project$Console$checkConsoleContent(
+					_Utils_update(
+						console,
+						{ssoClient: elm$core$Maybe$Nothing})) : elm$core$Maybe$Just(
+					_Utils_update(
+						console,
+						{
+							ssoClient: elm$core$Maybe$Just(
+								_Utils_update(
+									updatedSsoClient,
+									{name: updatedSsoClientName}))
+						}));
+			case 'UpdateExistingSsoSecret':
+				var updatedSsoClient = msg.a;
+				var updatedSsoSecret = msg.b;
+				return elm$core$Maybe$Just(
+					_Utils_update(
+						console,
+						{
+							ssoClient: elm$core$Maybe$Just(
+								_Utils_update(
+									updatedSsoClient,
+									{secret: updatedSsoSecret}))
+						}));
+			case 'UpdateExistingSsoHostnameHttp':
+				var updatedSsoClient = msg.a;
+				var updatedSsoHostnameHttp = msg.b;
+				return elm$core$Maybe$Just(
+					_Utils_update(
+						console,
+						{
+							ssoClient: elm$core$Maybe$Just(
+								_Utils_update(
+									updatedSsoClient,
+									{hostnameHttp: updatedSsoHostnameHttp}))
+						}));
+			default:
+				var updatedSsoClient = msg.a;
+				var updatedSsoHostnameHttps = msg.b;
+				return elm$core$Maybe$Just(
+					_Utils_update(
+						console,
+						{
+							ssoClient: elm$core$Maybe$Just(
+								_Utils_update(
+									updatedSsoClient,
+									{hostnameHttps: updatedSsoHostnameHttps}))
+						}));
+		}
+	});
+var author$project$Environment$Rhdm_authoring = function (a) {
+	return {$: 'Rhdm_authoring', a: a};
+};
+var author$project$Environment$rhdm_authoring = author$project$Environment$Rhdm_authoring('rhdm-authoring');
+var author$project$Environment$Rhdm_authoring_ha = function (a) {
+	return {$: 'Rhdm_authoring_ha', a: a};
+};
+var author$project$Environment$rhdm_authoring_ha = author$project$Environment$Rhdm_authoring_ha('rhdm-authoring-ha');
+var author$project$Environment$Rhdm_optaweb_trial = function (a) {
+	return {$: 'Rhdm_optaweb_trial', a: a};
+};
+var author$project$Environment$rhdm_optaweb_trial = author$project$Environment$Rhdm_optaweb_trial('rhdm-optaweb-trial');
+var author$project$Environment$Rhdm_production_immutable = function (a) {
+	return {$: 'Rhdm_production_immutable', a: a};
+};
+var author$project$Environment$rhdm_production_immutable = author$project$Environment$Rhdm_production_immutable('rhdm-production-immutable');
+var author$project$Environment$Rhpam_authoring = function (a) {
+	return {$: 'Rhpam_authoring', a: a};
+};
+var author$project$Environment$rhpam_authoring = author$project$Environment$Rhpam_authoring('rhpam-authoring');
+var author$project$Environment$Rhpam_authoring_ha = function (a) {
+	return {$: 'Rhpam_authoring_ha', a: a};
+};
+var author$project$Environment$rhpam_authoring_ha = author$project$Environment$Rhpam_authoring_ha('rhpam-authoring-ha');
+var author$project$Environment$Rhpam_production = function (a) {
+	return {$: 'Rhpam_production', a: a};
+};
+var author$project$Environment$rhpam_production = author$project$Environment$Rhpam_production('rhpam-production');
+var author$project$Environment$Rhpam_production_immutable = function (a) {
+	return {$: 'Rhpam_production_immutable', a: a};
+};
+var author$project$Environment$rhpam_production_immutable = author$project$Environment$Rhpam_production_immutable('rhpam-production-immutable');
+var author$project$Environment$Rhpam_trial = function (a) {
+	return {$: 'Rhpam_trial', a: a};
+};
+var author$project$Environment$rhpam_trial = author$project$Environment$Rhpam_trial('rhpam-trial');
+var author$project$Environment$environments = _List_fromArray(
+	[author$project$Environment$rhdm_authoring_ha, author$project$Environment$rhdm_authoring, author$project$Environment$rhdm_optaweb_trial, author$project$Environment$rhdm_production_immutable, author$project$Environment$rhdm_trial, author$project$Environment$rhpam_authoring_ha, author$project$Environment$rhpam_authoring, author$project$Environment$rhpam_production_immutable, author$project$Environment$rhpam_production, author$project$Environment$rhpam_trial]);
+var author$project$Environment$getEnvironmentName = function (environment) {
+	switch (environment.$) {
+		case 'Rhdm_authoring_ha':
+			var name = environment.a;
+			return name;
+		case 'Rhdm_authoring':
+			var name = environment.a;
+			return name;
+		case 'Rhdm_optaweb_trial':
+			var name = environment.a;
+			return name;
+		case 'Rhdm_production_immutable':
+			var name = environment.a;
+			return name;
+		case 'Rhdm_trial':
+			var name = environment.a;
+			return name;
+		case 'Rhpam_authoring_ha':
+			var name = environment.a;
+			return name;
+		case 'Rhpam_authoring':
+			var name = environment.a;
+			return name;
+		case 'Rhpam_production_immutable':
+			var name = environment.a;
+			return name;
+		case 'Rhpam_production':
+			var name = environment.a;
+			return name;
+		default:
+			var name = environment.a;
+			return name;
+	}
 };
 var elm$core$List$head = function (list) {
 	if (list.b) {
@@ -4596,25 +4798,60 @@ var author$project$Environment$getEnvironmentFromName = function (environmentNam
 			},
 			author$project$Environment$environments));
 };
-var elm$core$Basics$not = _Basics_not;
-var elm$core$String$length = _String_length;
-var author$project$Main$updateImageRegistry = F2(
-	function (imageRegistryMsg, imageRegistry) {
-		if (imageRegistryMsg.$ === 'ToggleInsecure') {
-			var imageReg = imageRegistryMsg.a;
-			return elm$core$Maybe$Just(
-				_Utils_update(
-					imageReg,
-					{insecure: !imageReg.insecure}));
+var author$project$Environment$mapEnvironmentEvent = F2(
+	function (msg, environment) {
+		if (msg.$ === 'SelectEnvironment') {
+			var newEnvironmentName = msg.a;
+			var _n1 = author$project$Environment$getEnvironmentFromName(newEnvironmentName);
+			if (_n1.$ === 'Nothing') {
+				return author$project$Environment$rhdm_trial;
+			} else {
+				var newEnvironment = _n1.a;
+				return newEnvironment;
+			}
 		} else {
-			var imageReg = imageRegistryMsg.a;
-			var newRegistryName = imageRegistryMsg.b;
-			return (elm$core$String$length(newRegistryName) > 0) ? elm$core$Maybe$Just(
-				_Utils_update(
-					imageReg,
-					{registry: newRegistryName})) : elm$core$Maybe$Nothing;
+			var consoleMessage = msg.a;
+			if (environment.$ === 'Rhdm_trial') {
+				if (environment.b.$ === 'Just') {
+					var name = environment.a;
+					var console = environment.b.a;
+					return A2(
+						author$project$Environment$Rhdm_trial,
+						name,
+						A2(author$project$Console$mapConsoleEvent, consoleMessage, console));
+				} else {
+					var name = environment.a;
+					var _n3 = environment.b;
+					return A2(
+						author$project$Environment$Rhdm_trial,
+						name,
+						A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole));
+				}
+			} else {
+				return environment;
+			}
 		}
 	});
+var author$project$Main$updateEnvironment = F2(
+	function (environmentMsg, environment) {
+		return A2(author$project$Environment$mapEnvironmentEvent, environmentMsg, environment);
+	});
+var author$project$Main$updateImageRegistry = function (imageRegistryMsg) {
+	if (imageRegistryMsg.$ === 'ToggleInsecure') {
+		var imageReg = imageRegistryMsg.a;
+		return elm$core$Maybe$Just(
+			_Utils_update(
+				imageReg,
+				{insecure: !imageReg.insecure}));
+	} else {
+		var imageReg = imageRegistryMsg.a;
+		var newRegistryName = imageRegistryMsg.b;
+		return (elm$core$String$length(newRegistryName) > 0) ? elm$core$Maybe$Just(
+			_Utils_update(
+				imageReg,
+				{registry: newRegistryName})) : elm$core$Maybe$Nothing;
+	}
+};
 var author$project$Server$emptyServer = {
 	deployments: elm$core$Maybe$Nothing,
 	from: elm$core$Maybe$Nothing,
@@ -4653,7 +4890,6 @@ var author$project$Server$updateSingleEnvItemWithIndex = F4(
 	function (updateIndex, envItemUpdate, envIndex, env) {
 		return _Utils_eq(updateIndex, envIndex) ? envItemUpdate(env) : env;
 	});
-var elm$core$Basics$append = _Utils_append;
 var elm$core$Basics$sub = _Basics_sub;
 var elm$core$List$length = function (xs) {
 	return A3(
@@ -4699,9 +4935,6 @@ var elm$core$List$indexedMap = F2(
 				elm$core$List$length(xs) - 1),
 			xs);
 	});
-var elm$core$String$isEmpty = function (string) {
-	return string === '';
-};
 var author$project$Server$updateEnvItemInList = F3(
 	function (updateIndex, envItemUpdate, envItems) {
 		return (_Utils_cmp(
@@ -4825,28 +5058,20 @@ var author$project$Main$update = F2(
 				return _Utils_update(
 					kieApp,
 					{name: newName});
-			case 'SelectEnvironment':
-				var newEnvironmentName = msg.a;
+			case 'EnvironmentMsg':
+				var environmentMessage = msg.a;
 				return _Utils_update(
 					kieApp,
 					{
-						environment: function () {
-							var _n1 = author$project$Environment$getEnvironmentFromName(newEnvironmentName);
-							if (_n1.$ === 'Nothing') {
-								return author$project$Environment$rhdm_trial;
-							} else {
-								var newEnvironment = _n1.a;
-								return newEnvironment;
-							}
-						}()
+						environment: A2(author$project$Main$updateEnvironment, environmentMessage, kieApp.environment)
 					});
 			case 'ToggleServer':
 				return _Utils_update(
 					kieApp,
 					{
 						server: function () {
-							var _n2 = kieApp.server;
-							if (_n2.$ === 'Just') {
+							var _n1 = kieApp.server;
+							if (_n1.$ === 'Just') {
 								return elm$core$Maybe$Nothing;
 							} else {
 								return elm$core$Maybe$Just(author$project$Server$emptyServer);
@@ -4859,9 +5084,9 @@ var author$project$Main$update = F2(
 					kieApp,
 					{
 						server: function () {
-							var _n3 = kieApp.server;
-							if (_n3.$ === 'Just') {
-								var server = _n3.a;
+							var _n2 = kieApp.server;
+							if (_n2.$ === 'Just') {
+								var server = _n2.a;
 								return elm$core$Maybe$Just(
 									A2(author$project$Server$mapServerEvent, serverMessage, server));
 							} else {
@@ -4874,15 +5099,24 @@ var author$project$Main$update = F2(
 				return _Utils_update(
 					kieApp,
 					{
-						imageRegistry: A2(author$project$Main$updateImageRegistry, imageRegistryMsg, kieApp.imageRegistry)
+						imageRegistry: author$project$Main$updateImageRegistry(imageRegistryMsg)
 					});
 		}
+	});
+var author$project$Environment$SelectEnvironment = function (a) {
+	return {$: 'SelectEnvironment', a: a};
+};
+var author$project$Console$AddNewEnvVariable = function (a) {
+	return {$: 'AddNewEnvVariable', a: a};
+};
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
 	});
 var elm$core$Basics$identity = function (x) {
 	return x;
 };
-var elm$core$Basics$False = {$: 'False'};
-var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
 		return true;
@@ -5052,7 +5286,6 @@ var elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
 var elm$core$Basics$and = _Basics_and;
-var elm$core$Basics$or = _Basics_or;
 var elm$core$Char$toCode = _Char_toCode;
 var elm$core$Char$isLower = function (_char) {
 	var code = elm$core$Char$toCode(_char);
@@ -5212,18 +5445,10 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
-var elm$html$Html$option = _VirtualDom_node('option');
+var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$input = _VirtualDom_node('input');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$json$Json$Encode$bool = _Json_wrap;
-var elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$bool(bool));
-	});
-var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5232,39 +5457,7 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			key,
 			elm$json$Json$Encode$string(string));
 	});
-var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
-var author$project$Environment$toEnvironmentOption = F2(
-	function (selectedEnvironment, environment) {
-		return A2(
-			elm$html$Html$option,
-			_List_fromArray(
-				[
-					elm$html$Html$Attributes$selected(
-					_Utils_eq(selectedEnvironment, environment)),
-					elm$html$Html$Attributes$value(
-					author$project$Environment$getEnvironmentName(environment))
-				]),
-			_List_fromArray(
-				[
-					elm$html$Html$text(
-					author$project$Environment$getEnvironmentName(environment))
-				]));
-	});
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
-var elm$html$Html$select = _VirtualDom_node('select');
+var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
@@ -5299,24 +5492,302 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
-var author$project$Environment$getEnvironmentDropdownList = F2(
-	function (selectedEnvironment, msg) {
+var author$project$Console$getLastEnvVariableView = function (msg) {
+	return A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text('Env variable name: '),
+				A2(
+				elm$html$Html$input,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$placeholder('Name'),
+						elm$html$Html$Events$onInput(
+						A2(elm$core$Basics$composeR, author$project$Console$AddNewEnvVariable, msg))
+					]),
+				_List_Nil)
+			]));
+};
+var author$project$Console$UpdateExistingEnvVariableName = F3(
+	function (a, b, c) {
+		return {$: 'UpdateExistingEnvVariableName', a: a, b: b, c: c};
+	});
+var author$project$Console$UpdateExistingEnvVariableValue = F3(
+	function (a, b, c) {
+		return {$: 'UpdateExistingEnvVariableValue', a: a, b: b, c: c};
+	});
+var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
+var author$project$Console$getSingleEnvVariableView = F3(
+	function (msg, envItemList, envItem) {
 		return A2(
-			elm$html$Html$select,
+			elm$html$Html$div,
+			_List_Nil,
 			_List_fromArray(
 				[
-					elm$html$Html$Events$onInput(msg)
+					elm$html$Html$text('Env variable name: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Name'),
+							elm$html$Html$Attributes$value(envItem.name),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								A2(author$project$Console$UpdateExistingEnvVariableName, envItem, envItemList),
+								msg))
+						]),
+					_List_Nil),
+					elm$html$Html$text('Env variable value: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Value'),
+							elm$html$Html$Attributes$value(envItem.value),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								A2(author$project$Console$UpdateExistingEnvVariableValue, envItem, envItemList),
+								msg))
+						]),
+					_List_Nil)
+				]));
+	});
+var author$project$Console$getEnvVariableView = F2(
+	function (msg, console) {
+		var _n0 = console.env;
+		if (_n0.$ === 'Just') {
+			var envItemList = _n0.a;
+			return _Utils_ap(
+				A2(
+					elm$core$List$map,
+					A2(author$project$Console$getSingleEnvVariableView, msg, envItemList),
+					envItemList),
+				_List_fromArray(
+					[
+						author$project$Console$getLastEnvVariableView(msg)
+					]));
+		} else {
+			return _List_fromArray(
+				[
+					author$project$Console$getLastEnvVariableView(msg)
+				]);
+		}
+	});
+var author$project$Console$AddNewSssoClientName = function (a) {
+	return {$: 'AddNewSssoClientName', a: a};
+};
+var author$project$Console$UpdateExistingSsoClientName = F2(
+	function (a, b) {
+		return {$: 'UpdateExistingSsoClientName', a: a, b: b};
+	});
+var author$project$Console$UpdateExistingSsoHostnameHttp = F2(
+	function (a, b) {
+		return {$: 'UpdateExistingSsoHostnameHttp', a: a, b: b};
+	});
+var author$project$Console$UpdateExistingSsoHostnameHttps = F2(
+	function (a, b) {
+		return {$: 'UpdateExistingSsoHostnameHttps', a: a, b: b};
+	});
+var author$project$Console$UpdateExistingSsoSecret = F2(
+	function (a, b) {
+		return {$: 'UpdateExistingSsoSecret', a: a, b: b};
+	});
+var elm$html$Html$br = _VirtualDom_node('br');
+var author$project$Console$getSsoClientView = F2(
+	function (msg, console) {
+		var _n0 = console.ssoClient;
+		if (_n0.$ === 'Just') {
+			var ssoClient = _n0.a;
+			return _List_fromArray(
+				[
+					elm$html$Html$text('SSO client name: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Name'),
+							elm$html$Html$Attributes$value(ssoClient.name),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								author$project$Console$UpdateExistingSsoClientName(ssoClient),
+								msg))
+						]),
+					_List_Nil),
+					elm$html$Html$text('SSO secret: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Secret'),
+							elm$html$Html$Attributes$value(ssoClient.secret),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								author$project$Console$UpdateExistingSsoSecret(ssoClient),
+								msg))
+						]),
+					_List_Nil),
+					A2(elm$html$Html$br, _List_Nil, _List_Nil),
+					elm$html$Html$text('HTTP redirect URL hostname: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Hostname redirect URL'),
+							elm$html$Html$Attributes$value(ssoClient.hostnameHttp),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								author$project$Console$UpdateExistingSsoHostnameHttp(ssoClient),
+								msg))
+						]),
+					_List_Nil),
+					elm$html$Html$text('HTTPS redirect URL hostname: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Secure hostname redirect URL'),
+							elm$html$Html$Attributes$value(ssoClient.hostnameHttps),
+							elm$html$Html$Events$onInput(
+							A2(
+								elm$core$Basics$composeR,
+								author$project$Console$UpdateExistingSsoHostnameHttps(ssoClient),
+								msg))
+						]),
+					_List_Nil)
+				]);
+		} else {
+			return _List_fromArray(
+				[
+					elm$html$Html$text('SSO client name: '),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$placeholder('Name'),
+							elm$html$Html$Events$onInput(
+							A2(elm$core$Basics$composeR, author$project$Console$AddNewSssoClientName, msg))
+						]),
+					_List_Nil)
+				]);
+		}
+	});
+var elm$html$Html$fieldset = _VirtualDom_node('fieldset');
+var elm$html$Html$legend = _VirtualDom_node('legend');
+var author$project$Console$getConsoleView = F2(
+	function (msg, console) {
+		return _List_fromArray(
+			[
+				A2(
+				elm$html$Html$fieldset,
+				_List_Nil,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$legend,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('Monitoring console configuration')
+								]))
+						]),
+					_Utils_ap(
+						A2(author$project$Console$getEnvVariableView, msg, console),
+						A2(author$project$Console$getSsoClientView, msg, console))))
+			]);
+	});
+var author$project$Console$getConsoleViewEmpty = function (msg) {
+	return A2(author$project$Console$getConsoleView, msg, author$project$Console$emptyConsole);
+};
+var author$project$Environment$ConsoleMsg = function (a) {
+	return {$: 'ConsoleMsg', a: a};
+};
+var author$project$Environment$getConsoleView = F2(
+	function (msg, environment) {
+		if (environment.$ === 'Rhdm_trial') {
+			if (environment.b.$ === 'Just') {
+				var console = environment.b.a;
+				return A2(
+					author$project$Console$getConsoleView,
+					A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+					console);
+			} else {
+				var _n1 = environment.b;
+				return author$project$Console$getConsoleViewEmpty(
+					A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg));
+			}
+		} else {
+			return _List_Nil;
+		}
+	});
+var elm$html$Html$option = _VirtualDom_node('option');
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$bool(bool));
+	});
+var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
+var author$project$Environment$toEnvironmentOption = F2(
+	function (selectedEnvironment, environment) {
+		return A2(
+			elm$html$Html$option,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$selected(
+					_Utils_eq(
+						author$project$Environment$getEnvironmentName(selectedEnvironment),
+						author$project$Environment$getEnvironmentName(environment))),
+					elm$html$Html$Attributes$value(
+					author$project$Environment$getEnvironmentName(environment))
 				]),
-			A2(
-				elm$core$List$map,
-				author$project$Environment$toEnvironmentOption(selectedEnvironment),
-				author$project$Environment$environments));
+			_List_fromArray(
+				[
+					elm$html$Html$text(
+					author$project$Environment$getEnvironmentName(environment))
+				]));
+	});
+var elm$html$Html$select = _VirtualDom_node('select');
+var author$project$Environment$getEnvironmentView = F2(
+	function (msg, environment) {
+		return _Utils_ap(
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							elm$html$Html$text('Environment: '),
+							A2(
+							elm$html$Html$select,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Environment$SelectEnvironment, msg))
+								]),
+							A2(
+								elm$core$List$map,
+								author$project$Environment$toEnvironmentOption(environment),
+								author$project$Environment$environments))
+						]))
+				]),
+			A2(author$project$Environment$getConsoleView, msg, environment));
 	});
 var author$project$Main$ChangeName = function (a) {
 	return {$: 'ChangeName', a: a};
 };
-var author$project$Main$SelectEnvironment = function (a) {
-	return {$: 'SelectEnvironment', a: a};
+var author$project$Main$EnvironmentMsg = function (a) {
+	return {$: 'EnvironmentMsg', a: a};
 };
 var author$project$Main$ToggleServer = {$: 'ToggleServer'};
 var author$project$Main$containsServer = function (kieApp) {
@@ -5338,19 +5809,9 @@ var author$project$Main$ImageRegistryMsg = function (a) {
 var author$project$Main$ToggleInsecure = function (a) {
 	return {$: 'ToggleInsecure', a: a};
 };
-var elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var elm$html$Html$br = _VirtualDom_node('br');
-var elm$html$Html$fieldset = _VirtualDom_node('fieldset');
 var elm$html$Html$form = _VirtualDom_node('form');
-var elm$html$Html$input = _VirtualDom_node('input');
-var elm$html$Html$legend = _VirtualDom_node('legend');
 var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
 var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
-var elm$html$Html$Attributes$placeholder = elm$html$Html$Attributes$stringProperty('placeholder');
 var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -5368,10 +5829,11 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var author$project$Main$getImageRegistryView = function (imageRegistry) {
+var author$project$Main$getImageRegistryView = function (kieApp) {
 	var insecureInput = function () {
-		if (imageRegistry.$ === 'Just') {
-			var imageReg = imageRegistry.a;
+		var _n1 = kieApp.imageRegistry;
+		if (_n1.$ === 'Just') {
+			var imageReg = _n1.a;
 			return A2(
 				elm$html$Html$input,
 				_List_fromArray(
@@ -5396,8 +5858,9 @@ var author$project$Main$getImageRegistryView = function (imageRegistry) {
 		}
 	}();
 	var changeRegistryInput = function () {
-		if (imageRegistry.$ === 'Just') {
-			var imageReg = imageRegistry.a;
+		var _n0 = kieApp.imageRegistry;
+		if (_n0.$ === 'Just') {
+			var imageReg = _n0.a;
 			return A2(
 				elm$html$Html$input,
 				_List_fromArray(
@@ -5453,6 +5916,56 @@ var author$project$Main$getImageRegistryView = function (imageRegistry) {
 						]))
 				]))
 		]);
+};
+var author$project$Console$getEnvAsYaml = function (console) {
+	var _n0 = console.env;
+	if (_n0.$ === 'Just') {
+		var envItemList = _n0.a;
+		return '      env:\n' + A3(
+			elm$core$List$foldr,
+			elm$core$Basics$append,
+			'',
+			A2(
+				elm$core$List$map,
+				function (envItem) {
+					return '        - name: ' + (envItem.name + ('\n          value: \"' + (envItem.value + '\"\n')));
+				},
+				envItemList));
+	} else {
+		return '';
+	}
+};
+var author$project$Console$getSsoClientAsYaml = function (console) {
+	var _n0 = console.ssoClient;
+	if (_n0.$ === 'Just') {
+		var ssoClient = _n0.a;
+		return '      ssoClient:\n' + ('        name: ' + (ssoClient.name + ('\n' + ('        secret: ' + (ssoClient.secret + ('\n' + ('        hostnameHTTP: ' + (ssoClient.hostnameHttp + ('\n' + ('        hostnameHTTPS: ' + (ssoClient.hostnameHttps + '\n')))))))))));
+	} else {
+		return '';
+	}
+};
+var author$project$Console$getConsoleAsYaml = function (console) {
+	return '    console:\n' + (author$project$Console$getEnvAsYaml(console) + author$project$Console$getSsoClientAsYaml(console));
+};
+var author$project$Environment$getConsoleAsYaml = function (environment) {
+	if ((environment.$ === 'Rhdm_trial') && (environment.b.$ === 'Just')) {
+		var console = environment.b.a;
+		return author$project$Console$getConsoleAsYaml(console);
+	} else {
+		return '';
+	}
+};
+var author$project$Environment$getObjectsAsYaml = function (environment) {
+	var _n0 = author$project$Environment$getConsoleAsYaml(environment);
+	if (_n0 === '') {
+		return '';
+	} else {
+		var contentOfObjects = _n0;
+		return '  objects:\n' + contentOfObjects;
+	}
+};
+var author$project$Environment$getEnvironmentAsYaml = function (environment) {
+	return '  environment: ' + (author$project$Environment$getEnvironmentName(environment) + ('\n' + author$project$Environment$getObjectsAsYaml(environment)));
 };
 var author$project$ImageRegistry$getInsecureAsYaml = function (imageRegistry) {
 	return imageRegistry.insecure ? '    insecure: true\n' : '    insecure: false\n';
@@ -5532,7 +6045,7 @@ var author$project$Main$getServerAsYaml = function (kieApp) {
 	}
 };
 var author$project$Main$getKieAppAsYaml = function (kieApp) {
-	return 'apiVersion: app.kiegroup.org/v1\n' + ('kind: KieApp\n' + ('metadata:\n' + ('  name: ' + (kieApp.name + ('\n' + ('spec:\n' + ('  environment: ' + (author$project$Environment$getEnvironmentName(kieApp.environment) + ('\n' + (author$project$Main$getObjectsAsYaml(kieApp) + (author$project$Main$getServerAsYaml(kieApp) + author$project$Main$getImageRegistryAsYaml(kieApp))))))))))));
+	return 'apiVersion: app.kiegroup.org/v1\n' + ('kind: KieApp\n' + ('metadata:\n' + ('  name: ' + (kieApp.name + ('\n' + ('spec:\n' + (author$project$Environment$getEnvironmentAsYaml(kieApp.environment) + (author$project$Main$getObjectsAsYaml(kieApp) + (author$project$Main$getServerAsYaml(kieApp) + author$project$Main$getImageRegistryAsYaml(kieApp))))))))));
 };
 var author$project$Main$ServerMsg = function (a) {
 	return {$: 'ServerMsg', a: a};
@@ -5566,7 +6079,6 @@ var author$project$Server$getEnvValueAsString = function (envValue) {
 		return valueFrom;
 	}
 };
-var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$Attributes$readonly = elm$html$Html$Attributes$boolProperty('readOnly');
 var author$project$Server$getSingleEnvVariableView = F4(
 	function (msg, lastEntryLine, index, env_item) {
@@ -5904,63 +6416,57 @@ var author$project$Main$view = function (kieApp) {
 									elm$html$Html$Events$onInput(author$project$Main$ChangeName)
 								]),
 							_List_Nil)
-						])),
-					A2(
-					elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text('Environment: '),
-							A2(author$project$Environment$getEnvironmentDropdownList, kieApp.environment, author$project$Main$SelectEnvironment)
 						]))
 				]),
 			_Utils_ap(
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$input,
-								_List_fromArray(
-									[
-										elm$html$Html$Attributes$type_('checkbox'),
-										elm$html$Html$Attributes$checked(
-										author$project$Main$containsServer(kieApp)),
-										elm$html$Html$Events$onClick(author$project$Main$ToggleServer)
-									]),
-								_List_Nil),
-								elm$html$Html$text('Kie server common config')
-							]))
-					]),
+				A2(author$project$Environment$getEnvironmentView, author$project$Main$EnvironmentMsg, kieApp.environment),
 				_Utils_ap(
-					author$project$Main$getServerView(kieApp),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$type_('checkbox'),
+											elm$html$Html$Attributes$checked(
+											author$project$Main$containsServer(kieApp)),
+											elm$html$Html$Events$onClick(author$project$Main$ToggleServer)
+										]),
+									_List_Nil),
+									elm$html$Html$text('Kie server common config')
+								]))
+						]),
 					_Utils_ap(
-						author$project$Main$getImageRegistryView(kieApp.imageRegistry),
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										elm$html$Html$textarea,
-										_List_fromArray(
-											[
-												elm$html$Html$Attributes$cols(80),
-												elm$html$Html$Attributes$rows(25),
-												elm$html$Html$Attributes$readonly(true)
-											]),
-										_List_fromArray(
-											[
-												elm$html$Html$text(
-												author$project$Main$getKieAppAsYaml(kieApp))
-											]))
-									]))
-							]))))));
+						author$project$Main$getServerView(kieApp),
+						_Utils_ap(
+							author$project$Main$getImageRegistryView(kieApp),
+							_List_fromArray(
+								[
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											A2(
+											elm$html$Html$textarea,
+											_List_fromArray(
+												[
+													elm$html$Html$Attributes$cols(80),
+													elm$html$Html$Attributes$rows(25),
+													elm$html$Html$Attributes$readonly(true)
+												]),
+											_List_fromArray(
+												[
+													elm$html$Html$text(
+													author$project$Main$getKieAppAsYaml(kieApp))
+												]))
+										]))
+								])))))));
 };
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
