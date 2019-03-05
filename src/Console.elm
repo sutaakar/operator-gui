@@ -80,17 +80,22 @@ updateSingleEnvItem envItemUpdateFunction updatedItem itemFromList =
 
 getConsoleView : (Msg -> msg) -> Console -> List (Html msg)
 getConsoleView msg console =
-    case console.env of
-        Just envItemList ->
-            List.map (getSingleEnvVariableView msg envItemList) envItemList ++ [ getLastEnvVariableView msg ]
+    [ Html.fieldset []
+        ([ Html.legend [] [ text "Monitoring console configuration" ] ]
+            ++ (case console.env of
+                    Just envItemList ->
+                        List.map (getSingleEnvVariableView msg envItemList) envItemList ++ [ getLastEnvVariableView msg ]
 
-        Nothing ->
-            [ getLastEnvVariableView msg ]
+                    Nothing ->
+                        [ getLastEnvVariableView msg ]
+               )
+        )
+    ]
 
 
 getConsoleViewEmpty : (Msg -> msg) -> List (Html msg)
 getConsoleViewEmpty msg =
-    [ getLastEnvVariableView msg ]
+    getConsoleView msg emptyConsole
 
 
 getSingleEnvVariableView : (Msg -> msg) -> List EnvItem -> EnvItem -> Html msg
