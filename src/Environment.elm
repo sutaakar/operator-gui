@@ -4,6 +4,7 @@ import Console
 import Html exposing (Attribute, Html, div, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import Servers
 
 
 
@@ -15,7 +16,7 @@ type Environment
     | Rhdm_authoring String
     | Rhdm_optaweb_trial String
     | Rhdm_production_immutable String
-    | Rhdm_trial String (Maybe Console.Console)
+    | Rhdm_trial String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhpam_authoring_ha String
     | Rhpam_authoring String
     | Rhpam_production_immutable String
@@ -45,7 +46,7 @@ rhdm_production_immutable =
 
 rhdm_trial : Environment
 rhdm_trial =
-    Rhdm_trial "rhdm-trial" Nothing
+    Rhdm_trial "rhdm-trial" Nothing Nothing
 
 
 rhpam_authoring_ha : Environment
@@ -93,7 +94,7 @@ getEnvironmentName environment =
         Rhdm_production_immutable name ->
             name
 
-        Rhdm_trial name _ ->
+        Rhdm_trial name _ _ ->
             name
 
         Rhpam_authoring_ha name ->
@@ -124,6 +125,7 @@ getEnvironmentFromName environmentName =
 type Msg
     = SelectEnvironment String
     | ConsoleMsg Console.Msg
+    | ServersMsg Servers.Msg
 
 
 mapEnvironmentEvent : Msg -> Environment -> Environment
@@ -139,11 +141,22 @@ mapEnvironmentEvent msg environment =
 
         ConsoleMsg consoleMessage ->
             case environment of
-                Rhdm_trial name (Just console) ->
-                    Rhdm_trial name (Console.mapConsoleEvent consoleMessage console)
+                Rhdm_trial name (Just console) servers ->
+                    Rhdm_trial name (Console.mapConsoleEvent consoleMessage console) servers
 
-                Rhdm_trial name Nothing ->
-                    Rhdm_trial name (Console.mapConsoleEvent consoleMessage Console.emptyConsole)
+                Rhdm_trial name Nothing servers ->
+                    Rhdm_trial name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
+                _ ->
+                    environment
+
+        ServersMsg serversMessage ->
+            case environment of
+                Rhdm_trial name console (Just servers) ->
+                    Rhdm_trial name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhdm_trial name console Nothing ->
+                    Rhdm_trial name console (Servers.mapServersEvent serversMessage { servers = [] })
 
                 _ ->
                     environment
@@ -157,15 +170,16 @@ getEnvironmentView : (Msg -> msg) -> Environment -> List (Html msg)
 getEnvironmentView msg environment =
     [ div [] [ text "Environment: ", select [ onInput (SelectEnvironment >> msg) ] (List.map (toEnvironmentOption environment) environments) ] ]
         ++ getConsoleView msg environment
+        ++ getServersView msg environment
 
 
 getConsoleView : (Msg -> msg) -> Environment -> List (Html msg)
 getConsoleView msg environment =
     case environment of
-        Rhdm_trial _ (Just console) ->
+        Rhdm_trial _ (Just console) _ ->
             Console.getConsoleView (ConsoleMsg >> msg) console
 
-        Rhdm_trial _ Nothing ->
+        Rhdm_trial _ Nothing _ ->
             Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
         _ ->
@@ -175,6 +189,19 @@ getConsoleView msg environment =
 toEnvironmentOption : Environment -> Environment -> Html msg
 toEnvironmentOption selectedEnvironment environment =
     option [ Html.Attributes.selected (getEnvironmentName selectedEnvironment == getEnvironmentName environment), value (getEnvironmentName environment) ] [ text (getEnvironmentName environment) ]
+
+
+getServersView : (Msg -> msg) -> Environment -> List (Html msg)
+getServersView msg environment =
+    case environment of
+        Rhdm_trial _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhdm_trial _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        _ ->
+            []
 
 
 
@@ -191,7 +218,7 @@ getEnvironmentAsYaml environment =
 
 getObjectsAsYaml : Environment -> String
 getObjectsAsYaml environment =
-    case getConsoleAsYaml environment of
+    case getConsoleAsYaml environment ++ getServersAsYaml environment of
         "" ->
             ""
 
@@ -202,8 +229,18 @@ getObjectsAsYaml environment =
 getConsoleAsYaml : Environment -> String
 getConsoleAsYaml environment =
     case environment of
-        Rhdm_trial _ (Just console) ->
+        Rhdm_trial _ (Just console) _ ->
             Console.getConsoleAsYaml console
+
+        _ ->
+            ""
+
+
+getServersAsYaml : Environment -> String
+getServersAsYaml environment =
+    case environment of
+        Rhdm_trial _ _ (Just servers) ->
+            Servers.getServersAsYaml servers
 
         _ ->
             ""

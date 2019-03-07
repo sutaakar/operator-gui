@@ -1,4 +1,4 @@
-module Main exposing (KieApp, Msg(..), containsServer, getKieAppAsYaml, getObjectsAsYaml, getServerAsYaml, getServerView, init, main, update, view)
+module Main exposing (KieApp, Msg(..), init, main, update, view)
 
 import Browser
 import Environment
@@ -6,7 +6,6 @@ import Html exposing (Attribute, Html, div, input, option, select, text, textare
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import ImageRegistry
-import Server
 
 
 
@@ -25,7 +24,6 @@ main =
 type alias KieApp =
     { name : String
     , environment : Environment.Environment
-    , server : Maybe Server.Server
     , imageRegistry : Maybe ImageRegistry.ImageRegistry
     }
 
@@ -34,19 +32,8 @@ init : KieApp
 init =
     { name = "my-kie-app"
     , environment = Environment.rhdm_trial
-    , server = Nothing
     , imageRegistry = Nothing
     }
-
-
-containsServer : KieApp -> Bool
-containsServer kieApp =
-    case kieApp.server of
-        Just _ ->
-            True
-
-        Nothing ->
-            False
 
 
 
@@ -56,8 +43,6 @@ containsServer kieApp =
 type Msg
     = ChangeName String
     | EnvironmentMsg Environment.Msg
-    | ToggleServer
-    | ServerMsg Server.Msg
     | ImageRegistryMsg ImageRegistryMsg
 
 
@@ -75,28 +60,6 @@ update msg kieApp =
         EnvironmentMsg environmentMessage ->
             { kieApp
                 | environment = updateEnvironment environmentMessage kieApp.environment
-            }
-
-        ToggleServer ->
-            { kieApp
-                | server =
-                    case kieApp.server of
-                        Just _ ->
-                            Nothing
-
-                        Nothing ->
-                            Just Server.emptyServer
-            }
-
-        ServerMsg serverMessage ->
-            { kieApp
-                | server =
-                    case kieApp.server of
-                        Just server ->
-                            Just (Server.mapServerEvent serverMessage server)
-
-                        Nothing ->
-                            Nothing
             }
 
         ImageRegistryMsg imageRegistryMsg ->
@@ -132,21 +95,9 @@ view kieApp =
         ([ div [] [ text "Kie app name: ", input [ placeholder "Kie app name", value kieApp.name, onInput ChangeName ] [] ]
          ]
             ++ Environment.getEnvironmentView EnvironmentMsg kieApp.environment
-            ++ [ div [] [ input [ type_ "checkbox", checked (containsServer kieApp), onClick ToggleServer ] [], text "Kie server common config" ] ]
-            ++ getServerView kieApp
             ++ getImageRegistryView kieApp
             ++ [ div [] [ textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
         )
-
-
-getServerView : KieApp -> List (Html Msg)
-getServerView kieApp =
-    case kieApp.server of
-        Just server ->
-            Server.getServerView server ServerMsg
-
-        Nothing ->
-            []
 
 
 getImageRegistryView : KieApp -> List (Html Msg)
@@ -193,28 +144,7 @@ getKieAppAsYaml kieApp =
         ++ "\n"
         ++ "spec:\n"
         ++ Environment.getEnvironmentAsYaml kieApp.environment
-        ++ getObjectsAsYaml kieApp
-        ++ getServerAsYaml kieApp
         ++ getImageRegistryAsYaml kieApp
-
-
-getObjectsAsYaml : KieApp -> String
-getObjectsAsYaml kieApp =
-    if containsServer kieApp then
-        "  objects:" ++ "\n"
-
-    else
-        ""
-
-
-getServerAsYaml : KieApp -> String
-getServerAsYaml kieApp =
-    case kieApp.server of
-        Just server ->
-            Server.getServerAsYaml server
-
-        Nothing ->
-            ""
 
 
 getImageRegistryAsYaml : KieApp -> String

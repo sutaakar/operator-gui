@@ -162,8 +162,8 @@ mapServerEvent msg server =
 -- VIEW
 
 
-getServerView : Server -> (Msg -> msg) -> List (Html msg)
-getServerView server msg =
+getServerView : (Msg -> msg) -> Server -> List (Html msg)
+getServerView msg server =
     [ div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ] ]
         ++ getFromView server.from msg
         ++ getEnvVariablesView server msg
