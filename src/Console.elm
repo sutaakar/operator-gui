@@ -1,5 +1,6 @@
 module Console exposing (Console, Msg, emptyConsole, getConsoleAsYaml, getConsoleView, mapConsoleEvent)
 
+import EnvItem
 import Html exposing (Attribute, Html, br, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -8,12 +9,6 @@ import YamlUtils
 
 
 -- MODEL
-
-
-type alias EnvItem =
-    { name : String
-    , value : String
-    }
 
 
 type alias SsoClient =
@@ -25,7 +20,7 @@ type alias SsoClient =
 
 
 type alias Console =
-    { env : Maybe (List EnvItem)
+    { env : Maybe (List EnvItem.EnvItem)
     , ssoClient : Maybe SsoClient
     }
 
@@ -42,9 +37,7 @@ emptyConsole =
 
 
 type Msg
-    = AddNewEnvVariable String
-    | UpdateExistingEnvVariableName EnvItem (List EnvItem) String
-    | UpdateExistingEnvVariableValue EnvItem (List EnvItem) String
+    = EnvItemMsg EnvItem.Msg
     | AddNewSssoClientName String
     | UpdateExistingSsoClientName SsoClient String
     | UpdateExistingSsoSecret SsoClient String
@@ -55,24 +48,13 @@ type Msg
 mapConsoleEvent : Msg -> Console -> Maybe Console
 mapConsoleEvent msg console =
     case msg of
-        AddNewEnvVariable newEnvVariableName ->
+        EnvItemMsg envItemMessage ->
             case console.env of
-                Just envItemList ->
-                    Just { console | env = Just (envItemList ++ [ { name = newEnvVariableName, value = "" } ]) }
+                Just envItems ->
+                    { console | env = EnvItem.mapEnvItemEvent envItemMessage envItems } |> checkConsoleContent
 
                 Nothing ->
-                    Just { console | env = Just [ { name = newEnvVariableName, value = "" } ] }
-
-        UpdateExistingEnvVariableName updatedEnvVariable envVariables newEnvVariableName ->
-            case updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | name = newEnvVariableName }) envVariables of
-                [] ->
-                    { console | env = Nothing } |> checkConsoleContent
-
-                xs ->
-                    Just { console | env = Just xs }
-
-        UpdateExistingEnvVariableValue updatedEnvVariable envVariables newEnvVariableValue ->
-            Just { console | env = Just (updateEnvItemInList updatedEnvVariable (\envItem -> { envItem | value = newEnvVariableValue }) envVariables) }
+                    Just { console | env = EnvItem.mapEnvItemEvent envItemMessage [] }
 
         AddNewSssoClientName newSsoClientName ->
             Just { console | ssoClient = Just { name = newSsoClientName, secret = "", hostnameHttp = "", hostnameHttps = "" } }
@@ -92,21 +74,6 @@ mapConsoleEvent msg console =
 
         UpdateExistingSsoHostnameHttps updatedSsoClient updatedSsoHostnameHttps ->
             Just { console | ssoClient = Just { updatedSsoClient | hostnameHttps = updatedSsoHostnameHttps } }
-
-
-updateEnvItemInList : EnvItem -> (EnvItem -> EnvItem) -> List EnvItem -> List EnvItem
-updateEnvItemInList updatedItem envItemUpdateFunction envItems =
-    List.map (updateSingleEnvItem envItemUpdateFunction updatedItem) envItems
-        |> List.filter (\envItem -> not (String.isEmpty envItem.name))
-
-
-updateSingleEnvItem : (EnvItem -> EnvItem) -> EnvItem -> EnvItem -> EnvItem
-updateSingleEnvItem envItemUpdateFunction updatedItem itemFromList =
-    if updatedItem == itemFromList then
-        envItemUpdateFunction itemFromList
-
-    else
-        itemFromList
 
 
 checkConsoleContent : Console -> Maybe Console
@@ -154,29 +121,11 @@ getConsoleView msg console =
 getEnvVariableView : (Msg -> msg) -> Console -> List (Html msg)
 getEnvVariableView msg console =
     case console.env of
-        Just envItemList ->
-            List.map (getSingleEnvVariableView msg envItemList) envItemList ++ [ getLastEnvVariableView msg ]
+        Just envItems ->
+            EnvItem.getEnvVariableView (EnvItemMsg >> msg) envItems
 
         Nothing ->
-            [ getLastEnvVariableView msg ]
-
-
-getSingleEnvVariableView : (Msg -> msg) -> List EnvItem -> EnvItem -> Html msg
-getSingleEnvVariableView msg envItemList envItem =
-    div []
-        [ text "Env variable name: "
-        , input [ placeholder "Name", value envItem.name, onInput (UpdateExistingEnvVariableName envItem envItemList >> msg) ] []
-        , text "Env variable value: "
-        , input [ placeholder "Value", value envItem.value, onInput (UpdateExistingEnvVariableValue envItem envItemList >> msg) ] []
-        ]
-
-
-getLastEnvVariableView : (Msg -> msg) -> Html msg
-getLastEnvVariableView msg =
-    div []
-        [ text "Env variable name: "
-        , input [ placeholder "Name", onInput (AddNewEnvVariable >> msg) ] []
-        ]
+            [ EnvItem.getLastEnvVariableView (EnvItemMsg >> msg) ]
 
 
 getSsoClientView : (Msg -> msg) -> Console -> List (Html msg)
@@ -214,11 +163,8 @@ getConsoleAsYaml console intendation =
 getEnvAsYaml : Console -> Int -> String
 getEnvAsYaml console intendation =
     case console.env of
-        Just envItemList ->
-            YamlUtils.getNameWithIntendation "env" intendation
-                ++ (List.map (\envItem -> YamlUtils.getNameAndValueWithDashAndIntendation "name" envItem.name (intendation + 2) ++ YamlUtils.getNameAndValueWithIntendation "value" envItem.value (intendation + 2)) envItemList
-                        |> List.foldr (++) ""
-                   )
+        Just envItems ->
+            EnvItem.getEnvAsYaml envItems intendation
 
         Nothing ->
             ""
