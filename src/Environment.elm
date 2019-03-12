@@ -5,6 +5,7 @@ import Html exposing (Attribute, Html, div, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Servers
+import YamlUtils
 
 
 
@@ -208,39 +209,38 @@ getServersView msg environment =
 -- YAML
 
 
-getEnvironmentAsYaml : Environment -> String
-getEnvironmentAsYaml environment =
-    "  environment: "
-        ++ getEnvironmentName environment
-        ++ "\n"
-        ++ getObjectsAsYaml environment
+getEnvironmentAsYaml : Environment -> Int -> String
+getEnvironmentAsYaml environment intendation =
+    YamlUtils.getNameAndValueWithIntendation "environment" (getEnvironmentName environment) intendation
+        ++ getObjectsAsYaml environment intendation
 
 
-getObjectsAsYaml : Environment -> String
-getObjectsAsYaml environment =
-    case getConsoleAsYaml environment ++ getServersAsYaml environment of
+getObjectsAsYaml : Environment -> Int -> String
+getObjectsAsYaml environment intendation =
+    case getConsoleAsYaml environment (intendation + 1) ++ getServersAsYaml environment (intendation + 1) of
         "" ->
             ""
 
         contentOfObjects ->
-            "  objects:\n" ++ contentOfObjects
+            YamlUtils.getNameWithIntendation "objects" intendation
+                ++ contentOfObjects
 
 
-getConsoleAsYaml : Environment -> String
-getConsoleAsYaml environment =
+getConsoleAsYaml : Environment -> Int -> String
+getConsoleAsYaml environment intendation =
     case environment of
         Rhdm_trial _ (Just console) _ ->
-            Console.getConsoleAsYaml console
+            Console.getConsoleAsYaml console intendation
 
         _ ->
             ""
 
 
-getServersAsYaml : Environment -> String
-getServersAsYaml environment =
+getServersAsYaml : Environment -> Int -> String
+getServersAsYaml environment intendation =
     case environment of
         Rhdm_trial _ _ (Just servers) ->
-            Servers.getServersAsYaml servers
+            Servers.getServersAsYaml servers intendation
 
         _ ->
             ""

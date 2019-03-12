@@ -3,6 +3,7 @@ module Console exposing (Console, Msg, emptyConsole, getConsoleAsYaml, getConsol
 import Html exposing (Attribute, Html, br, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import YamlUtils
 
 
 
@@ -203,19 +204,19 @@ getSsoClientView msg console =
 -- YAML
 
 
-getConsoleAsYaml : Console -> String
-getConsoleAsYaml console =
-    "    console:\n"
-        ++ getEnvAsYaml console
-        ++ getSsoClientAsYaml console
+getConsoleAsYaml : Console -> Int -> String
+getConsoleAsYaml console intendation =
+    YamlUtils.getNameWithIntendation "console" intendation
+        ++ getEnvAsYaml console (intendation + 1)
+        ++ getSsoClientAsYaml console (intendation + 1)
 
 
-getEnvAsYaml : Console -> String
-getEnvAsYaml console =
+getEnvAsYaml : Console -> Int -> String
+getEnvAsYaml console intendation =
     case console.env of
         Just envItemList ->
-            "      env:\n"
-                ++ (List.map (\envItem -> "        - name: " ++ envItem.name ++ "\n          value: \"" ++ envItem.value ++ "\"\n") envItemList
+            YamlUtils.getNameWithIntendation "env" intendation
+                ++ (List.map (\envItem -> YamlUtils.getNameAndValueWithDashAndIntendation "name" envItem.name (intendation + 2) ++ YamlUtils.getNameAndValueWithIntendation "value" envItem.value (intendation + 2)) envItemList
                         |> List.foldr (++) ""
                    )
 
@@ -223,23 +224,15 @@ getEnvAsYaml console =
             ""
 
 
-getSsoClientAsYaml : Console -> String
-getSsoClientAsYaml console =
+getSsoClientAsYaml : Console -> Int -> String
+getSsoClientAsYaml console intendation =
     case console.ssoClient of
         Just ssoClient ->
-            "      ssoClient:\n"
-                ++ "        name: "
-                ++ ssoClient.name
-                ++ "\n"
-                ++ "        secret: "
-                ++ ssoClient.secret
-                ++ "\n"
-                ++ "        hostnameHTTP: "
-                ++ ssoClient.hostnameHttp
-                ++ "\n"
-                ++ "        hostnameHTTPS: "
-                ++ ssoClient.hostnameHttps
-                ++ "\n"
+            YamlUtils.getNameWithIntendation "ssoClient" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "name" ssoClient.name (intendation + 1)
+                ++ YamlUtils.getNameAndValueWithIntendation "secret" ssoClient.secret (intendation + 1)
+                ++ YamlUtils.getNameAndValueWithIntendation "hostnameHTTP" ssoClient.hostnameHttp (intendation + 1)
+                ++ YamlUtils.getNameAndValueWithIntendation "hostnameHTTPS" ssoClient.hostnameHttps (intendation + 1)
 
         Nothing ->
             ""

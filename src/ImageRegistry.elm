@@ -3,6 +3,7 @@ module ImageRegistry exposing (ImageRegistry, emptyImageRegistry, getImageRegist
 import Html exposing (Attribute, Html, br, div, fieldset, form, input, legend, option, select, text)
 import Html.Attributes exposing (checked, placeholder, type_, value)
 import Html.Events exposing (onClick, onInput)
+import YamlUtils
 
 
 
@@ -22,19 +23,17 @@ emptyImageRegistry =
     }
 
 
-getImageRegistryAsYaml : ImageRegistry -> String
-getImageRegistryAsYaml imageRegistry =
-    "  imageRegistry:\n"
-        ++ getInsecureAsYaml imageRegistry
-        ++ "    registry: "
-        ++ imageRegistry.registry
-        ++ "\n"
+getImageRegistryAsYaml : ImageRegistry -> Int -> String
+getImageRegistryAsYaml imageRegistry intendation =
+    YamlUtils.getNameWithIntendation "imageRegistry" intendation
+        ++ getInsecureAsYaml imageRegistry (intendation + 1)
+        ++ YamlUtils.getNameAndValueWithIntendation "registry" imageRegistry.registry (intendation + 1)
 
 
-getInsecureAsYaml : ImageRegistry -> String
-getInsecureAsYaml imageRegistry =
+getInsecureAsYaml : ImageRegistry -> Int -> String
+getInsecureAsYaml imageRegistry intendation =
     if imageRegistry.insecure then
-        "    insecure: true\n"
+        YamlUtils.getNameAndValueWithIntendation "insecure" "true" intendation
 
     else
-        "    insecure: false\n"
+        YamlUtils.getNameAndValueWithIntendation "insecure" "false" intendation

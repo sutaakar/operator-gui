@@ -4,6 +4,7 @@ import Html exposing (Attribute, Html, br, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Server
+import YamlUtils
 
 
 
@@ -79,9 +80,9 @@ getServersView msg servers =
 -- YAML
 
 
-getServersAsYaml : Servers -> String
-getServersAsYaml servers =
-    "    servers:\n"
-        ++ (List.map (\server -> Server.getServerAsYaml server) servers.servers
+getServersAsYaml : Servers -> Int -> String
+getServersAsYaml servers intendation =
+    YamlUtils.getNameWithIntendation "servers" intendation
+        ++ (List.map (\server -> Server.getServerAsYaml server (intendation + 1)) servers.servers
                 |> List.foldr (++) ""
            )

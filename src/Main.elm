@@ -6,6 +6,7 @@ import Html exposing (Attribute, Html, div, input, option, select, text, textare
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import ImageRegistry
+import YamlUtils
 
 
 
@@ -136,22 +137,20 @@ getImageRegistryView kieApp =
 
 getKieAppAsYaml : KieApp -> String
 getKieAppAsYaml kieApp =
-    "apiVersion: app.kiegroup.org/v1\n"
-        ++ "kind: KieApp\n"
-        ++ "metadata:\n"
-        ++ "  name: "
-        ++ kieApp.name
-        ++ "\n"
-        ++ "spec:\n"
-        ++ Environment.getEnvironmentAsYaml kieApp.environment
-        ++ getImageRegistryAsYaml kieApp
+    YamlUtils.getNameAndValueWithIntendation "apiVersion" "app.kiegroup.org/v1" 0
+        ++ YamlUtils.getNameAndValueWithIntendation "kind" "KieApp" 0
+        ++ YamlUtils.getNameWithIntendation "metadata" 0
+        ++ YamlUtils.getNameAndValueWithIntendation "name" kieApp.name 1
+        ++ YamlUtils.getNameWithIntendation "spec" 0
+        ++ Environment.getEnvironmentAsYaml kieApp.environment 1
+        ++ getImageRegistryAsYaml kieApp 1
 
 
-getImageRegistryAsYaml : KieApp -> String
-getImageRegistryAsYaml kieApp =
+getImageRegistryAsYaml : KieApp -> Int -> String
+getImageRegistryAsYaml kieApp intendation =
     case kieApp.imageRegistry of
         Just imageRegistry ->
-            ImageRegistry.getImageRegistryAsYaml imageRegistry
+            ImageRegistry.getImageRegistryAsYaml imageRegistry intendation
 
         Nothing ->
             ""

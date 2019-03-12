@@ -3,6 +3,7 @@ module Server exposing (Msg, Server, emptyServer, getServerAsYaml, getServerView
 import Html exposing (Attribute, Html, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import YamlUtils
 
 
 
@@ -228,70 +229,62 @@ getSingleEnvVariableView msg lastEntryLine index env_item =
         ]
 
 
-getServerAsYaml : Server -> String
-getServerAsYaml server =
-    "    server:"
-        ++ "\n"
-        ++ getDeploymentsAsYaml server
-        ++ getFromAsYaml server
-        ++ getSpecAsYaml server
-        ++ getEnvItemsAsYaml server
+getServerAsYaml : Server -> Int -> String
+getServerAsYaml server intendation =
+    YamlUtils.getNameWithIntendation "server" intendation
+        ++ getDeploymentsAsYaml server (intendation + 1)
+        ++ getFromAsYaml server (intendation + 1)
+        ++ getSpecAsYaml server (intendation + 1)
+        ++ getEnvItemsAsYaml server (intendation + 1)
 
 
-getDeploymentsAsYaml : Server -> String
-getDeploymentsAsYaml server =
+getDeploymentsAsYaml : Server -> Int -> String
+getDeploymentsAsYaml server intendation =
     case server.deployments of
         Just int ->
-            "      deployments: " ++ String.fromInt int ++ "\n"
+            YamlUtils.getNameAndValueWithIntendation "deployments" (String.fromInt int) intendation
 
         Nothing ->
             ""
 
 
-getFromAsYaml : Server -> String
-getFromAsYaml server =
+getFromAsYaml : Server -> Int -> String
+getFromAsYaml server intendation =
     case server.from of
-        Just from ->
-            case from of
-                ImageStreamTag name namespace ->
-                    "      from:\n"
-                        ++ "        kind: ImageStreamTag\n"
-                        ++ "        name: "
-                        ++ name
-                        ++ "\n"
-                        ++ (if String.length namespace > 0 then
-                                "        namespace: " ++ namespace ++ "\n"
+        Just (ImageStreamTag name namespace) ->
+            YamlUtils.getNameWithIntendation "from" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "kind" "ImageStreamTag" (intendation + 1)
+                ++ YamlUtils.getNameAndValueWithIntendation "name" name (intendation + 1)
+                ++ (if String.length namespace > 0 then
+                        YamlUtils.getNameAndValueWithIntendation "namespace" namespace (intendation + 1)
 
-                            else
-                                ""
-                           )
+                    else
+                        ""
+                   )
 
-                DockerImage name ->
-                    "      from:\n"
-                        ++ "        kind: DockerImage\n"
-                        ++ "        name: "
-                        ++ name
-                        ++ "\n"
+        Just (DockerImage name) ->
+            YamlUtils.getNameWithIntendation "from" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "kind" "DockerImage" (intendation + 1)
+                ++ YamlUtils.getNameAndValueWithIntendation "name" name (intendation + 1)
 
         Nothing ->
             ""
 
 
-getSpecAsYaml : Server -> String
-getSpecAsYaml server =
+getSpecAsYaml : Server -> Int -> String
+getSpecAsYaml server intendation =
     if List.length server.spec.env > 0 then
-        "      spec:" ++ "\n"
+        YamlUtils.getNameWithIntendation "spec" intendation
 
     else
         ""
 
 
-getEnvItemsAsYaml : Server -> String
-getEnvItemsAsYaml server =
+getEnvItemsAsYaml : Server -> Int -> String
+getEnvItemsAsYaml server intendation =
     if List.length server.spec.env > 0 then
-        "        env:"
-            ++ "\n"
-            ++ (List.map getEnvVariableAsYaml server.spec.env
+        YamlUtils.getNameWithIntendation "env" intendation
+            ++ (List.map (getEnvVariableAsYaml (intendation + 1)) server.spec.env
                     |> List.foldr (++) ""
                )
 
@@ -299,15 +292,13 @@ getEnvItemsAsYaml server =
         ""
 
 
-getEnvVariableAsYaml : Env_item -> String
-getEnvVariableAsYaml envItem =
-    "          - name: "
-        ++ envItem.name
-        ++ "\n"
+getEnvVariableAsYaml : Int -> Env_item -> String
+getEnvVariableAsYaml intendation envItem =
+    YamlUtils.getNameAndValueWithDashAndIntendation "name" envItem.name intendation
         ++ (case envItem.value of
                 Value value ->
-                    "            value: \"" ++ value ++ "\"" ++ "\n"
+                    YamlUtils.getNameAndValueWithIntendation "value" value intendation
 
                 ValueFrom value ->
-                    "            valueFrom: \"" ++ value ++ "\"" ++ "\n"
+                    YamlUtils.getNameAndValueWithIntendation "valueFrom" value intendation
            )
