@@ -231,11 +231,11 @@ getSingleEnvVariableView msg lastEntryLine index env_item =
 
 getServerAsYaml : Server -> Int -> String
 getServerAsYaml server intendation =
-    YamlUtils.getNameWithIntendation "server" intendation
-        ++ getDeploymentsAsYaml server (intendation + 1)
+    getDeploymentsAsYaml server (intendation + 1)
         ++ getFromAsYaml server (intendation + 1)
-        ++ getSpecAsYaml server (intendation + 1)
         ++ getEnvItemsAsYaml server (intendation + 1)
+        |> String.dropLeft ((intendation + 1) * 2)
+        |> String.append (String.repeat intendation "  " ++ "- ")
 
 
 getDeploymentsAsYaml : Server -> Int -> String
@@ -271,20 +271,11 @@ getFromAsYaml server intendation =
             ""
 
 
-getSpecAsYaml : Server -> Int -> String
-getSpecAsYaml server intendation =
-    if List.length server.spec.env > 0 then
-        YamlUtils.getNameWithIntendation "spec" intendation
-
-    else
-        ""
-
-
 getEnvItemsAsYaml : Server -> Int -> String
 getEnvItemsAsYaml server intendation =
     if List.length server.spec.env > 0 then
         YamlUtils.getNameWithIntendation "env" intendation
-            ++ (List.map (getEnvVariableAsYaml (intendation + 1)) server.spec.env
+            ++ (List.map (getEnvVariableAsYaml (intendation + 2)) server.spec.env
                     |> List.foldr (++) ""
                )
 
