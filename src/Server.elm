@@ -1,5 +1,6 @@
 module Server exposing (Msg, Server, emptyServer, getServerAsYaml, getServerView, mapServerEvent)
 
+import EnvItem
 import Html exposing (Attribute, Html, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -10,30 +11,15 @@ import YamlUtils
 -- MODEL
 
 
-type Env_value
-    = Value String
-    | ValueFrom String
-
-
-type alias Env_item =
-    { name : String
-    , value : Env_value
-    }
-
-
 type From
     = ImageStreamTag String String
     | DockerImage String
 
 
-type alias Spec =
-    { env : List Env_item }
-
-
 type alias Server =
     { deployments : Maybe Int
     , from : Maybe From
-    , spec : Spec
+    , env : Maybe (List EnvItem.EnvItem)
     }
 
 
@@ -41,7 +27,7 @@ emptyServer : Server
 emptyServer =
     { deployments = Nothing
     , from = Nothing
-    , spec = { env = [] }
+    , env = Nothing
     }
 
 
@@ -67,50 +53,6 @@ getFromFromName fromName =
         Nothing
 
 
-setEnvName : String -> Env_item -> Env_item
-setEnvName newName envItem =
-    { envItem | name = newName }
-
-
-getEnvValueAsString : Env_value -> String
-getEnvValueAsString envValue =
-    case envValue of
-        Value value ->
-            value
-
-        ValueFrom valueFrom ->
-            valueFrom
-
-
-setEnvValue : String -> Env_item -> Env_item
-setEnvValue newValue envItem =
-    { envItem | value = Value newValue }
-
-
-updateSingleEnvItemWithIndex : Int -> (Env_item -> Env_item) -> Int -> Env_item -> Env_item
-updateSingleEnvItemWithIndex updateIndex envItemUpdate envIndex env =
-    if updateIndex == envIndex then
-        envItemUpdate env
-
-    else
-        env
-
-
-updateEnvItemInList : Int -> (Env_item -> Env_item) -> List Env_item -> List Env_item
-updateEnvItemInList updateIndex envItemUpdate envItems =
-    if List.length envItems > updateIndex then
-        List.indexedMap (updateSingleEnvItemWithIndex updateIndex envItemUpdate) envItems
-            |> List.filter (\envItem -> not (String.isEmpty envItem.name))
-
-    else
-        envItems ++ [ envItemUpdate { name = "", value = Value "" } ]
-
-
-updateEnvItemInSpec : Int -> (Env_item -> Env_item) -> Spec -> Spec
-updateEnvItemInSpec updateIndex envItemUpdate spec =
-    { spec | env = updateEnvItemInList updateIndex envItemUpdate spec.env }
-
-
 
 -- UPDATE
 
@@ -120,8 +62,7 @@ type Msg
     | ChangeFrom String
     | ChangeFromName String
     | ChangeFromNamespace String
-    | ChangeEnvVariableName Int String
-    | ChangeEnvVariableValue Int String
+    | EnvItemMsg EnvItem.Msg
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -152,11 +93,13 @@ mapServerEvent msg server =
                 _ ->
                     server
 
-        ChangeEnvVariableName updateIndex newName ->
-            { server | spec = updateEnvItemInSpec updateIndex (setEnvName newName) server.spec }
+        EnvItemMsg envItemMessage ->
+            case server.env of
+                Just envItems ->
+                    { server | env = EnvItem.mapEnvItemEvent envItemMessage envItems }
 
-        ChangeEnvVariableValue updateIndex newValue ->
-            { server | spec = updateEnvItemInSpec updateIndex (setEnvValue newValue) server.spec }
+                Nothing ->
+                    { server | env = EnvItem.mapEnvItemEvent envItemMessage [] }
 
 
 
@@ -167,7 +110,7 @@ getServerView : (Msg -> msg) -> Server -> List (Html msg)
 getServerView msg server =
     [ div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ] ]
         ++ getFromView server.from msg
-        ++ getEnvVariablesView server msg
+        ++ getEnvVariableView msg server
 
 
 getFromView : Maybe From -> (Msg -> msg) -> List (Html msg)
@@ -213,27 +156,25 @@ getFromOptions selectedFrom =
             ]
 
 
-getEnvVariablesView : Server -> (Msg -> msg) -> List (Html msg)
-getEnvVariablesView server msg =
-    List.indexedMap (getSingleEnvVariableView msg False) server.spec.env
-        ++ [ getSingleEnvVariableView msg True (List.length server.spec.env) { name = "", value = Value "" } ]
+getEnvVariableView : (Msg -> msg) -> Server -> List (Html msg)
+getEnvVariableView msg server =
+    case server.env of
+        Just envItems ->
+            EnvItem.getEnvVariableView (EnvItemMsg >> msg) envItems
+
+        Nothing ->
+            [ EnvItem.getLastEnvVariableView (EnvItemMsg >> msg) ]
 
 
-getSingleEnvVariableView : (Msg -> msg) -> Bool -> Int -> Env_item -> Html msg
-getSingleEnvVariableView msg lastEntryLine index env_item =
-    div []
-        [ text "Env variable name: "
-        , input [ placeholder "Name", value env_item.name, onInput (ChangeEnvVariableName index >> msg) ] []
-        , text "Env variable value: "
-        , input [ placeholder "Value", readonly lastEntryLine, value (getEnvValueAsString env_item.value), onInput (ChangeEnvVariableValue index >> msg) ] []
-        ]
+
+-- YAML
 
 
 getServerAsYaml : Server -> Int -> String
 getServerAsYaml server intendation =
     getDeploymentsAsYaml server (intendation + 1)
         ++ getFromAsYaml server (intendation + 1)
-        ++ getEnvItemsAsYaml server (intendation + 1)
+        ++ getEnvAsYaml server (intendation + 1)
         |> String.dropLeft ((intendation + 1) * 2)
         |> String.append (String.repeat intendation "  " ++ "- ")
 
@@ -271,25 +212,11 @@ getFromAsYaml server intendation =
             ""
 
 
-getEnvItemsAsYaml : Server -> Int -> String
-getEnvItemsAsYaml server intendation =
-    if List.length server.spec.env > 0 then
-        YamlUtils.getNameWithIntendation "env" intendation
-            ++ (List.map (getEnvVariableAsYaml (intendation + 2)) server.spec.env
-                    |> List.foldr (++) ""
-               )
+getEnvAsYaml : Server -> Int -> String
+getEnvAsYaml server intendation =
+    case server.env of
+        Just envItems ->
+            EnvItem.getEnvAsYaml envItems intendation
 
-    else
-        ""
-
-
-getEnvVariableAsYaml : Int -> Env_item -> String
-getEnvVariableAsYaml intendation envItem =
-    YamlUtils.getNameAndValueWithDashAndIntendation "name" envItem.name intendation
-        ++ (case envItem.value of
-                Value value ->
-                    YamlUtils.getNameAndValueWithIntendation "value" value intendation
-
-                ValueFrom value ->
-                    YamlUtils.getNameAndValueWithIntendation "valueFrom" value intendation
-           )
+        Nothing ->
+            ""
