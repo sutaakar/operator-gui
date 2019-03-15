@@ -15,7 +15,6 @@ import YamlUtils
 type Environment
     = Rhdm_authoring_ha String
     | Rhdm_authoring String
-    | Rhdm_optaweb_trial String
     | Rhdm_production_immutable String
     | Rhdm_trial String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhpam_authoring_ha String
@@ -33,11 +32,6 @@ rhdm_authoring_ha =
 rhdm_authoring : Environment
 rhdm_authoring =
     Rhdm_authoring "rhdm-authoring"
-
-
-rhdm_optaweb_trial : Environment
-rhdm_optaweb_trial =
-    Rhdm_optaweb_trial "rhdm-optaweb-trial"
 
 
 rhdm_production_immutable : Environment
@@ -77,7 +71,7 @@ rhpam_trial =
 
 environments : List Environment
 environments =
-    [ rhdm_authoring_ha, rhdm_authoring, rhdm_optaweb_trial, rhdm_production_immutable, rhdm_trial, rhpam_authoring_ha, rhpam_authoring, rhpam_production_immutable, rhpam_production, rhpam_trial ]
+    [ rhdm_authoring_ha, rhdm_authoring, rhdm_production_immutable, rhdm_trial, rhpam_authoring_ha, rhpam_authoring, rhpam_production_immutable, rhpam_production, rhpam_trial ]
 
 
 getEnvironmentName : Environment -> String
@@ -87,9 +81,6 @@ getEnvironmentName environment =
             name
 
         Rhdm_authoring name ->
-            name
-
-        Rhdm_optaweb_trial name ->
             name
 
         Rhdm_production_immutable name ->
