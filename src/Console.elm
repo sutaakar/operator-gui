@@ -175,10 +175,10 @@ getSsoClientAsYaml console intendation =
     case console.ssoClient of
         Just ssoClient ->
             YamlUtils.getNameWithIntendation "ssoClient" intendation
-                ++ YamlUtils.getNameAndValueWithIntendation "name" ssoClient.name (intendation + 1)
-                ++ YamlUtils.getNameAndValueWithIntendation "secret" ssoClient.secret (intendation + 1)
-                ++ YamlUtils.getNameAndValueWithIntendation "hostnameHTTP" ssoClient.hostnameHttp (intendation + 1)
-                ++ YamlUtils.getNameAndValueWithIntendation "hostnameHTTPS" ssoClient.hostnameHttps (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "name" ssoClient.name (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "secret" ssoClient.secret (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "hostnameHTTP" ssoClient.hostnameHttp (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "hostnameHTTPS" ssoClient.hostnameHttps (intendation + 1)
 
         Nothing ->
             ""
