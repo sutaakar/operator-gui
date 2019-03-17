@@ -15,7 +15,7 @@ import YamlUtils
 type Environment
     = Rhdm_authoring_ha String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhdm_authoring String (Maybe Console.Console) (Maybe Servers.Servers)
-    | Rhdm_production_immutable String
+    | Rhdm_production_immutable String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhdm_trial String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhpam_authoring_ha String
     | Rhpam_authoring String
@@ -36,7 +36,7 @@ rhdm_authoring =
 
 rhdm_production_immutable : Environment
 rhdm_production_immutable =
-    Rhdm_production_immutable "rhdm-production-immutable"
+    Rhdm_production_immutable "rhdm-production-immutable" Nothing Nothing
 
 
 rhdm_trial : Environment
@@ -83,7 +83,7 @@ getEnvironmentName environment =
         Rhdm_authoring name _ _ ->
             name
 
-        Rhdm_production_immutable name ->
+        Rhdm_production_immutable name _ _ ->
             name
 
         Rhdm_trial name _ _ ->
@@ -151,6 +151,12 @@ mapEnvironmentEvent msg environment =
                 Rhdm_authoring_ha name Nothing servers ->
                     Rhdm_authoring_ha name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
 
+                Rhdm_production_immutable name (Just console) servers ->
+                    Rhdm_production_immutable name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhdm_production_immutable name Nothing servers ->
+                    Rhdm_production_immutable name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
                 _ ->
                     environment
 
@@ -173,6 +179,12 @@ mapEnvironmentEvent msg environment =
 
                 Rhdm_authoring_ha name console Nothing ->
                     Rhdm_authoring_ha name console (Servers.mapServersEvent serversMessage { servers = [] })
+
+                Rhdm_production_immutable name console (Just servers) ->
+                    Rhdm_production_immutable name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhdm_production_immutable name console Nothing ->
+                    Rhdm_production_immutable name console (Servers.mapServersEvent serversMessage { servers = [] })
 
                 _ ->
                     environment
@@ -210,6 +222,12 @@ getConsoleView msg environment =
         Rhdm_authoring_ha _ Nothing _ ->
             Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
+        Rhdm_production_immutable _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
+
+        Rhdm_production_immutable _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
+
         _ ->
             []
 
@@ -238,6 +256,12 @@ getServersView msg environment =
             Servers.getServersView (ServersMsg >> msg) servers
 
         Rhdm_authoring_ha _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        Rhdm_production_immutable _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhdm_production_immutable _ _ Nothing ->
             Servers.getServersView (ServersMsg >> msg) { servers = [] }
 
         _ ->
@@ -277,6 +301,9 @@ getConsoleAsYaml environment intendation =
         Rhdm_authoring_ha _ (Just console) _ ->
             Console.getConsoleAsYaml console intendation
 
+        Rhdm_production_immutable _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
         _ ->
             ""
 
@@ -291,6 +318,9 @@ getServersAsYaml environment intendation =
             Servers.getServersAsYaml servers intendation
 
         Rhdm_authoring_ha _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhdm_production_immutable _ _ (Just servers) ->
             Servers.getServersAsYaml servers intendation
 
         _ ->
