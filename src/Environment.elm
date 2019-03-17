@@ -14,7 +14,7 @@ import YamlUtils
 
 type Environment
     = Rhdm_authoring_ha String
-    | Rhdm_authoring String
+    | Rhdm_authoring String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhdm_production_immutable String
     | Rhdm_trial String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhpam_authoring_ha String
@@ -31,7 +31,7 @@ rhdm_authoring_ha =
 
 rhdm_authoring : Environment
 rhdm_authoring =
-    Rhdm_authoring "rhdm-authoring"
+    Rhdm_authoring "rhdm-authoring" Nothing Nothing
 
 
 rhdm_production_immutable : Environment
@@ -80,7 +80,7 @@ getEnvironmentName environment =
         Rhdm_authoring_ha name ->
             name
 
-        Rhdm_authoring name ->
+        Rhdm_authoring name _ _ ->
             name
 
         Rhdm_production_immutable name ->
@@ -139,6 +139,12 @@ mapEnvironmentEvent msg environment =
                 Rhdm_trial name Nothing servers ->
                     Rhdm_trial name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
 
+                Rhdm_authoring name (Just console) servers ->
+                    Rhdm_authoring name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhdm_authoring name Nothing servers ->
+                    Rhdm_authoring name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
                 _ ->
                     environment
 
@@ -149,6 +155,12 @@ mapEnvironmentEvent msg environment =
 
                 Rhdm_trial name console Nothing ->
                     Rhdm_trial name console (Servers.mapServersEvent serversMessage { servers = [] })
+
+                Rhdm_authoring name console (Just servers) ->
+                    Rhdm_authoring name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhdm_authoring name console Nothing ->
+                    Rhdm_authoring name console (Servers.mapServersEvent serversMessage { servers = [] })
 
                 _ ->
                     environment
@@ -174,6 +186,12 @@ getConsoleView msg environment =
         Rhdm_trial _ Nothing _ ->
             Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
+        Rhdm_authoring _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
+
+        Rhdm_authoring _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
+
         _ ->
             []
 
@@ -190,6 +208,12 @@ getServersView msg environment =
             Servers.getServersView (ServersMsg >> msg) servers
 
         Rhdm_trial _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        Rhdm_authoring _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhdm_authoring _ _ Nothing ->
             Servers.getServersView (ServersMsg >> msg) { servers = [] }
 
         _ ->
@@ -223,6 +247,9 @@ getConsoleAsYaml environment intendation =
         Rhdm_trial _ (Just console) _ ->
             Console.getConsoleAsYaml console intendation
 
+        Rhdm_authoring _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
         _ ->
             ""
 
@@ -231,6 +258,9 @@ getServersAsYaml : Environment -> Int -> String
 getServersAsYaml environment intendation =
     case environment of
         Rhdm_trial _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhdm_authoring _ _ (Just servers) ->
             Servers.getServersAsYaml servers intendation
 
         _ ->
