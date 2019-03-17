@@ -4734,22 +4734,21 @@ var author$project$Console$mapConsoleEvent = F2(
 						}));
 		}
 	});
-var author$project$Environment$Rhdm_authoring = function (a) {
-	return {$: 'Rhdm_authoring', a: a};
-};
-var author$project$Environment$rhdm_authoring = author$project$Environment$Rhdm_authoring('rhdm-authoring');
-var author$project$Environment$Rhdm_authoring_ha = function (a) {
-	return {$: 'Rhdm_authoring_ha', a: a};
-};
-var author$project$Environment$rhdm_authoring_ha = author$project$Environment$Rhdm_authoring_ha('rhdm-authoring-ha');
-var author$project$Environment$Rhdm_optaweb_trial = function (a) {
-	return {$: 'Rhdm_optaweb_trial', a: a};
-};
-var author$project$Environment$rhdm_optaweb_trial = author$project$Environment$Rhdm_optaweb_trial('rhdm-optaweb-trial');
-var author$project$Environment$Rhdm_production_immutable = function (a) {
-	return {$: 'Rhdm_production_immutable', a: a};
-};
-var author$project$Environment$rhdm_production_immutable = author$project$Environment$Rhdm_production_immutable('rhdm-production-immutable');
+var author$project$Environment$Rhdm_authoring = F3(
+	function (a, b, c) {
+		return {$: 'Rhdm_authoring', a: a, b: b, c: c};
+	});
+var author$project$Environment$Rhdm_authoring_ha = F3(
+	function (a, b, c) {
+		return {$: 'Rhdm_authoring_ha', a: a, b: b, c: c};
+	});
+var author$project$Environment$Rhdm_production_immutable = F3(
+	function (a, b, c) {
+		return {$: 'Rhdm_production_immutable', a: a, b: b, c: c};
+	});
+var author$project$Environment$rhdm_authoring = A3(author$project$Environment$Rhdm_authoring, 'rhdm-authoring', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+var author$project$Environment$rhdm_authoring_ha = A3(author$project$Environment$Rhdm_authoring_ha, 'rhdm-authoring-ha', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+var author$project$Environment$rhdm_production_immutable = A3(author$project$Environment$Rhdm_production_immutable, 'rhdm-production-immutable', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
 var author$project$Environment$Rhpam_authoring = function (a) {
 	return {$: 'Rhpam_authoring', a: a};
 };
@@ -4771,16 +4770,13 @@ var author$project$Environment$Rhpam_trial = function (a) {
 };
 var author$project$Environment$rhpam_trial = author$project$Environment$Rhpam_trial('rhpam-trial');
 var author$project$Environment$environments = _List_fromArray(
-	[author$project$Environment$rhdm_authoring_ha, author$project$Environment$rhdm_authoring, author$project$Environment$rhdm_optaweb_trial, author$project$Environment$rhdm_production_immutable, author$project$Environment$rhdm_trial, author$project$Environment$rhpam_authoring_ha, author$project$Environment$rhpam_authoring, author$project$Environment$rhpam_production_immutable, author$project$Environment$rhpam_production, author$project$Environment$rhpam_trial]);
+	[author$project$Environment$rhdm_authoring_ha, author$project$Environment$rhdm_authoring, author$project$Environment$rhdm_production_immutable, author$project$Environment$rhdm_trial, author$project$Environment$rhpam_authoring_ha, author$project$Environment$rhpam_authoring, author$project$Environment$rhpam_production_immutable, author$project$Environment$rhpam_production, author$project$Environment$rhpam_trial]);
 var author$project$Environment$getEnvironmentName = function (environment) {
 	switch (environment.$) {
 		case 'Rhdm_authoring_ha':
 			var name = environment.a;
 			return name;
 		case 'Rhdm_authoring':
-			var name = environment.a;
-			return name;
-		case 'Rhdm_optaweb_trial':
 			var name = environment.a;
 			return name;
 		case 'Rhdm_production_immutable':
@@ -5000,56 +4996,187 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 				}
 			case 'ConsoleMsg':
 				var consoleMessage = msg.a;
-				if (environment.$ === 'Rhdm_trial') {
-					if (environment.b.$ === 'Just') {
-						var name = environment.a;
-						var console = environment.b.a;
-						var servers = environment.c;
-						return A3(
-							author$project$Environment$Rhdm_trial,
-							name,
-							A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
-							servers);
-					} else {
-						var name = environment.a;
-						var _n3 = environment.b;
-						var servers = environment.c;
-						return A3(
-							author$project$Environment$Rhdm_trial,
-							name,
-							A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
-							servers);
-					}
-				} else {
-					return environment;
+				switch (environment.$) {
+					case 'Rhdm_trial':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_trial,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n3 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_trial,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					case 'Rhdm_authoring':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_authoring,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n4 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_authoring,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					case 'Rhdm_authoring_ha':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_authoring_ha,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n5 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_authoring_ha,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					case 'Rhdm_production_immutable':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_production_immutable,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n6 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_production_immutable,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					default:
+						return environment;
 				}
 			default:
 				var serversMessage = msg.a;
-				if (environment.$ === 'Rhdm_trial') {
-					if (environment.c.$ === 'Just') {
-						var name = environment.a;
-						var console = environment.b;
-						var servers = environment.c.a;
-						return A3(
-							author$project$Environment$Rhdm_trial,
-							name,
-							console,
-							A2(author$project$Servers$mapServersEvent, serversMessage, servers));
-					} else {
-						var name = environment.a;
-						var console = environment.b;
-						var _n5 = environment.c;
-						return A3(
-							author$project$Environment$Rhdm_trial,
-							name,
-							console,
-							A2(
-								author$project$Servers$mapServersEvent,
-								serversMessage,
-								{servers: _List_Nil}));
-					}
-				} else {
-					return environment;
+				switch (environment.$) {
+					case 'Rhdm_trial':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhdm_trial,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n8 = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_trial,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					case 'Rhdm_authoring':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhdm_authoring,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n9 = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_authoring,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					case 'Rhdm_authoring_ha':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhdm_authoring_ha,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n10 = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_authoring_ha,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					case 'Rhdm_production_immutable':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhdm_production_immutable,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n11 = environment.c;
+							return A3(
+								author$project$Environment$Rhdm_production_immutable,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					default:
+						return environment;
 				}
 		}
 	});
@@ -5758,22 +5885,65 @@ var author$project$Environment$ConsoleMsg = function (a) {
 };
 var author$project$Environment$getConsoleView = F2(
 	function (msg, environment) {
-		if (environment.$ === 'Rhdm_trial') {
-			if (environment.b.$ === 'Just') {
-				var console = environment.b.a;
-				return A2(
-					author$project$Console$getConsoleView,
-					A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
-					console);
-			} else {
-				var _n1 = environment.b;
-				return A2(
-					author$project$Console$getConsoleView,
-					A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
-					author$project$Console$emptyConsole);
-			}
-		} else {
-			return _List_Nil;
+		switch (environment.$) {
+			case 'Rhdm_trial':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n1 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			case 'Rhdm_authoring':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n2 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			case 'Rhdm_authoring_ha':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n3 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			case 'Rhdm_production_immutable':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n4 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			default:
+				return _List_Nil;
 		}
 	});
 var author$project$Environment$ServersMsg = function (a) {
@@ -6117,22 +6287,65 @@ var author$project$Servers$getServersView = F2(
 	});
 var author$project$Environment$getServersView = F2(
 	function (msg, environment) {
-		if (environment.$ === 'Rhdm_trial') {
-			if (environment.c.$ === 'Just') {
-				var servers = environment.c.a;
-				return A2(
-					author$project$Servers$getServersView,
-					A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-					servers);
-			} else {
-				var _n1 = environment.c;
-				return A2(
-					author$project$Servers$getServersView,
-					A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-					{servers: _List_Nil});
-			}
-		} else {
-			return _List_Nil;
+		switch (environment.$) {
+			case 'Rhdm_trial':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers);
+				} else {
+					var _n1 = environment.c;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil});
+				}
+			case 'Rhdm_authoring':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers);
+				} else {
+					var _n2 = environment.c;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil});
+				}
+			case 'Rhdm_authoring_ha':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers);
+				} else {
+					var _n3 = environment.c;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil});
+				}
+			case 'Rhdm_production_immutable':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers);
+				} else {
+					var _n4 = environment.c;
+					return A2(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil});
+				}
+			default:
+				return _List_Nil;
 		}
 	});
 var author$project$Environment$toEnvironmentOption = F2(
@@ -6360,6 +6573,10 @@ var author$project$Console$getEnvAsYaml = F2(
 			return '';
 		}
 	});
+var author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation = F3(
+	function (name, value, intendation) {
+		return (elm$core$String$length(value) > 0) ? A3(author$project$YamlUtils$getNameAndValueWithIntendation, name, value, intendation) : '';
+	});
 var author$project$Console$getSsoClientAsYaml = F2(
 	function (console, intendation) {
 		var _n0 = console.ssoClient;
@@ -6368,12 +6585,12 @@ var author$project$Console$getSsoClientAsYaml = F2(
 			return _Utils_ap(
 				A2(author$project$YamlUtils$getNameWithIntendation, 'ssoClient', intendation),
 				_Utils_ap(
-					A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'name', ssoClient.name, intendation + 1),
+					A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'name', ssoClient.name, intendation + 1),
 					_Utils_ap(
-						A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'secret', ssoClient.secret, intendation + 1),
+						A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'secret', ssoClient.secret, intendation + 1),
 						_Utils_ap(
-							A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'hostnameHTTP', ssoClient.hostnameHttp, intendation + 1),
-							A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'hostnameHTTPS', ssoClient.hostnameHttps, intendation + 1)))));
+							A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'hostnameHTTP', ssoClient.hostnameHttp, intendation + 1),
+							A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'hostnameHTTPS', ssoClient.hostnameHttps, intendation + 1)))));
 		} else {
 			return '';
 		}
@@ -6388,12 +6605,42 @@ var author$project$Console$getConsoleAsYaml = F2(
 	});
 var author$project$Environment$getConsoleAsYaml = F2(
 	function (environment, intendation) {
-		if ((environment.$ === 'Rhdm_trial') && (environment.b.$ === 'Just')) {
-			var console = environment.b.a;
-			return A2(author$project$Console$getConsoleAsYaml, console, intendation);
-		} else {
-			return '';
+		_n0$4:
+		while (true) {
+			switch (environment.$) {
+				case 'Rhdm_trial':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$4;
+					}
+				case 'Rhdm_authoring':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$4;
+					}
+				case 'Rhdm_authoring_ha':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$4;
+					}
+				case 'Rhdm_production_immutable':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$4;
+					}
+				default:
+					break _n0$4;
+			}
 		}
+		return '';
 	});
 var author$project$Server$getDeploymentsAsYaml = F2(
 	function (server, intendation) {
@@ -6487,12 +6734,42 @@ var author$project$Servers$getServersAsYaml = F2(
 	});
 var author$project$Environment$getServersAsYaml = F2(
 	function (environment, intendation) {
-		if ((environment.$ === 'Rhdm_trial') && (environment.c.$ === 'Just')) {
-			var servers = environment.c.a;
-			return A2(author$project$Servers$getServersAsYaml, servers, intendation);
-		} else {
-			return '';
+		_n0$4:
+		while (true) {
+			switch (environment.$) {
+				case 'Rhdm_trial':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$4;
+					}
+				case 'Rhdm_authoring':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$4;
+					}
+				case 'Rhdm_authoring_ha':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$4;
+					}
+				case 'Rhdm_production_immutable':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$4;
+					}
+				default:
+					break _n0$4;
+			}
 		}
+		return '';
 	});
 var author$project$Environment$getObjectsAsYaml = F2(
 	function (environment, intendation) {
