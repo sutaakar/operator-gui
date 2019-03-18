@@ -20,6 +20,7 @@ type alias Server =
     { name : String
     , deployments : Maybe Int
     , replicas : Maybe Int
+    , keystoreSecret : String
     , from : Maybe From
     , env : Maybe (List EnvItem.EnvItem)
     }
@@ -30,6 +31,7 @@ emptyServer =
     { name = ""
     , deployments = Nothing
     , replicas = Nothing
+    , keystoreSecret = ""
     , from = Nothing
     , env = Nothing
     }
@@ -75,6 +77,7 @@ type Msg
     = ChangeName String
     | ChangeDeployments String
     | ChangeReplicas String
+    | ChangeKeystoreSecret String
     | ChangeFrom String
     | ChangeFromName String
     | ChangeFromNamespace String
@@ -123,6 +126,9 @@ mapServerEvent msg server =
         ChangeReplicas newReplicas ->
             { server | replicas = String.toInt newReplicas }
 
+        ChangeKeystoreSecret newKeystoreSecret ->
+            { server | keystoreSecret = newKeystoreSecret }
+
 
 
 -- VIEW
@@ -133,6 +139,7 @@ getServerView msg server =
     [ div [] [ text "Server name: ", input [ placeholder "Server name", value server.name, onInput (ChangeName >> msg) ] [] ]
     , div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ]
     , div [] [ text "Kie server replicas for DeploymentConfig: ", input [ placeholder "DeploymentConfig replicas", value (getReplicasAsString server), onInput (ChangeReplicas >> msg) ] [] ]
+    , div [] [ text "Keystore secret name: ", input [ placeholder "Keystore secret name", value server.keystoreSecret, onInput (ChangeKeystoreSecret >> msg) ] [] ]
     ]
         ++ getFromView server.from msg
         ++ getEnvVariableView msg server
@@ -200,6 +207,7 @@ getServerAsYaml server intendation =
     YamlUtils.getNameAndNonEmptyValueWithIntendation "name" server.name (intendation + 1)
         ++ getDeploymentsAsYaml server (intendation + 1)
         ++ getReplicasAsYaml server (intendation + 1)
+        ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "keystoreSecret" server.keystoreSecret (intendation + 1)
         ++ getFromAsYaml server (intendation + 1)
         ++ getEnvAsYaml server (intendation + 1)
         |> String.dropLeft ((intendation + 1) * 2)
