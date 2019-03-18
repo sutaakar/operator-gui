@@ -19,6 +19,7 @@ type From
 type alias Server =
     { name : String
     , deployments : Maybe Int
+    , replicas : Maybe Int
     , from : Maybe From
     , env : Maybe (List EnvItem.EnvItem)
     }
@@ -28,6 +29,7 @@ emptyServer : Server
 emptyServer =
     { name = ""
     , deployments = Nothing
+    , replicas = Nothing
     , from = Nothing
     , env = Nothing
     }
@@ -38,6 +40,16 @@ getDeploymentsAsString server =
     case server.deployments of
         Just deployments ->
             String.fromInt deployments
+
+        Nothing ->
+            ""
+
+
+getReplicasAsString : Server -> String
+getReplicasAsString server =
+    case server.replicas of
+        Just replicas ->
+            String.fromInt replicas
 
         Nothing ->
             ""
@@ -62,6 +74,7 @@ getFromFromName fromName =
 type Msg
     = ChangeName String
     | ChangeDeployments String
+    | ChangeReplicas String
     | ChangeFrom String
     | ChangeFromName String
     | ChangeFromNamespace String
@@ -107,6 +120,9 @@ mapServerEvent msg server =
         ChangeName newName ->
             { server | name = newName }
 
+        ChangeReplicas newReplicas ->
+            { server | replicas = String.toInt newReplicas }
+
 
 
 -- VIEW
@@ -116,6 +132,7 @@ getServerView : (Msg -> msg) -> Server -> List (Html msg)
 getServerView msg server =
     [ div [] [ text "Server name: ", input [ placeholder "Server name", value server.name, onInput (ChangeName >> msg) ] [] ]
     , div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ]
+    , div [] [ text "Kie server replicas for DeploymentConfig: ", input [ placeholder "DeploymentConfig replicas", value (getReplicasAsString server), onInput (ChangeReplicas >> msg) ] [] ]
     ]
         ++ getFromView server.from msg
         ++ getEnvVariableView msg server
@@ -182,6 +199,7 @@ getServerAsYaml : Server -> Int -> String
 getServerAsYaml server intendation =
     YamlUtils.getNameAndNonEmptyValueWithIntendation "name" server.name (intendation + 1)
         ++ getDeploymentsAsYaml server (intendation + 1)
+        ++ getReplicasAsYaml server (intendation + 1)
         ++ getFromAsYaml server (intendation + 1)
         ++ getEnvAsYaml server (intendation + 1)
         |> String.dropLeft ((intendation + 1) * 2)
@@ -193,6 +211,16 @@ getDeploymentsAsYaml server intendation =
     case server.deployments of
         Just int ->
             YamlUtils.getNameAndValueWithIntendation "deployments" (String.fromInt int) intendation
+
+        Nothing ->
+            ""
+
+
+getReplicasAsYaml : Server -> Int -> String
+getReplicasAsYaml server intendation =
+    case server.replicas of
+        Just replicas ->
+            YamlUtils.getNameAndValueWithIntendation "replicas" (String.fromInt replicas) intendation
 
         Nothing ->
             ""
