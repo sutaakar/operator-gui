@@ -20,14 +20,16 @@ type alias SsoClient =
 
 
 type alias Console =
-    { env : Maybe (List EnvItem.EnvItem)
+    { replicas : Maybe Int
+    , env : Maybe (List EnvItem.EnvItem)
     , ssoClient : Maybe SsoClient
     }
 
 
 emptyConsole : Console
 emptyConsole =
-    { env = Nothing
+    { replicas = Nothing
+    , env = Nothing
     , ssoClient = Nothing
     }
 
@@ -37,7 +39,8 @@ emptyConsole =
 
 
 type Msg
-    = EnvItemMsg EnvItem.Msg
+    = ChangeReplicas String
+    | EnvItemMsg EnvItem.Msg
     | AddNewSssoClientName String
     | UpdateExistingSsoClientName SsoClient String
     | UpdateExistingSsoSecret SsoClient String
@@ -75,29 +78,13 @@ mapConsoleEvent msg console =
         UpdateExistingSsoHostnameHttps updatedSsoClient updatedSsoHostnameHttps ->
             Just { console | ssoClient = Just { updatedSsoClient | hostnameHttps = updatedSsoHostnameHttps } }
 
+        ChangeReplicas replicas ->
+            { console | replicas = String.toInt replicas } |> checkConsoleContent
+
 
 checkConsoleContent : Console -> Maybe Console
 checkConsoleContent console =
-    let
-        checkEnvVariablesExistence : Bool
-        checkEnvVariablesExistence =
-            case console.env of
-                Just envItemList ->
-                    True
-
-                Nothing ->
-                    False
-
-        checkSsoClientExistence : Bool
-        checkSsoClientExistence =
-            case console.ssoClient of
-                Just ssoClient ->
-                    True
-
-                Nothing ->
-                    False
-    in
-    if checkEnvVariablesExistence || checkSsoClientExistence then
+    if console /= emptyConsole then
         Just console
 
     else
@@ -112,6 +99,9 @@ getConsoleView : (Msg -> msg) -> Console -> List (Html msg)
 getConsoleView msg console =
     [ Html.fieldset []
         ([ Html.legend [] [ text "Monitoring console configuration" ] ]
+            ++ [ text "Number of Monitoring console replicas: "
+               , input [ placeholder "Replicas for DeploymentConfig", value (getReplicasAsString console), onInput (ChangeReplicas >> msg) ] []
+               ]
             ++ getEnvVariableView msg console
             ++ getSsoClientView msg console
         )
@@ -149,6 +139,16 @@ getSsoClientView msg console =
             ]
 
 
+getReplicasAsString : Console -> String
+getReplicasAsString console =
+    case console.replicas of
+        Just replicas ->
+            String.fromInt replicas
+
+        Nothing ->
+            ""
+
+
 
 -- YAML
 
@@ -156,8 +156,19 @@ getSsoClientView msg console =
 getConsoleAsYaml : Console -> Int -> String
 getConsoleAsYaml console intendation =
     YamlUtils.getNameWithIntendation "console" intendation
+        ++ getReplicasAsYaml console (intendation + 1)
         ++ getEnvAsYaml console (intendation + 1)
         ++ getSsoClientAsYaml console (intendation + 1)
+
+
+getReplicasAsYaml : Console -> Int -> String
+getReplicasAsYaml console intendation =
+    case console.replicas of
+        Just replicas ->
+            YamlUtils.getNameAndValueWithIntendation "replicas" (String.fromInt replicas) intendation
+
+        Nothing ->
+            ""
 
 
 getEnvAsYaml : Console -> Int -> String
