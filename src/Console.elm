@@ -21,6 +21,7 @@ type alias SsoClient =
 
 type alias Console =
     { replicas : Maybe Int
+    , keystoreSecret : String
     , env : Maybe (List EnvItem.EnvItem)
     , ssoClient : Maybe SsoClient
     }
@@ -29,6 +30,7 @@ type alias Console =
 emptyConsole : Console
 emptyConsole =
     { replicas = Nothing
+    , keystoreSecret = ""
     , env = Nothing
     , ssoClient = Nothing
     }
@@ -40,6 +42,7 @@ emptyConsole =
 
 type Msg
     = ChangeReplicas String
+    | ChangeKeystoreSecret String
     | EnvItemMsg EnvItem.Msg
     | AddNewSssoClientName String
     | UpdateExistingSsoClientName SsoClient String
@@ -81,6 +84,9 @@ mapConsoleEvent msg console =
         ChangeReplicas replicas ->
             { console | replicas = String.toInt replicas } |> checkConsoleContent
 
+        ChangeKeystoreSecret keystoreSecret ->
+            { console | keystoreSecret = keystoreSecret } |> checkConsoleContent
+
 
 checkConsoleContent : Console -> Maybe Console
 checkConsoleContent console =
@@ -101,6 +107,11 @@ getConsoleView msg console =
         ([ Html.legend [] [ text "Monitoring console configuration" ] ]
             ++ [ text "Number of Monitoring console replicas: "
                , input [ placeholder "Replicas for DeploymentConfig", value (getReplicasAsString console), onInput (ChangeReplicas >> msg) ] []
+               , br [] []
+               ]
+            ++ [ text "Keystore secret name: "
+               , input [ placeholder "Keystore secret name", value console.keystoreSecret, onInput (ChangeKeystoreSecret >> msg) ] []
+               , br [] []
                ]
             ++ getEnvVariableView msg console
             ++ getSsoClientView msg console
@@ -157,6 +168,7 @@ getConsoleAsYaml : Console -> Int -> String
 getConsoleAsYaml console intendation =
     YamlUtils.getNameWithIntendation "console" intendation
         ++ getReplicasAsYaml console (intendation + 1)
+        ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "keystoreSecret" console.keystoreSecret (intendation + 1)
         ++ getEnvAsYaml console (intendation + 1)
         ++ getSsoClientAsYaml console (intendation + 1)
 
