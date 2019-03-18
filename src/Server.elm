@@ -17,7 +17,8 @@ type From
 
 
 type alias Server =
-    { deployments : Maybe Int
+    { name : String
+    , deployments : Maybe Int
     , from : Maybe From
     , env : Maybe (List EnvItem.EnvItem)
     }
@@ -25,7 +26,8 @@ type alias Server =
 
 emptyServer : Server
 emptyServer =
-    { deployments = Nothing
+    { name = ""
+    , deployments = Nothing
     , from = Nothing
     , env = Nothing
     }
@@ -58,7 +60,8 @@ getFromFromName fromName =
 
 
 type Msg
-    = ChangeDeployments String
+    = ChangeName String
+    | ChangeDeployments String
     | ChangeFrom String
     | ChangeFromName String
     | ChangeFromNamespace String
@@ -101,6 +104,9 @@ mapServerEvent msg server =
                 Nothing ->
                     { server | env = EnvItem.mapEnvItemEvent envItemMessage [] }
 
+        ChangeName newName ->
+            { server | name = newName }
+
 
 
 -- VIEW
@@ -108,7 +114,9 @@ mapServerEvent msg server =
 
 getServerView : (Msg -> msg) -> Server -> List (Html msg)
 getServerView msg server =
-    [ div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ] ]
+    [ div [] [ text "Server name: ", input [ placeholder "Server name", value server.name, onInput (ChangeName >> msg) ] [] ]
+    , div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ]
+    ]
         ++ getFromView server.from msg
         ++ getEnvVariableView msg server
 
@@ -172,7 +180,8 @@ getEnvVariableView msg server =
 
 getServerAsYaml : Server -> Int -> String
 getServerAsYaml server intendation =
-    getDeploymentsAsYaml server (intendation + 1)
+    YamlUtils.getNameAndNonEmptyValueWithIntendation "name" server.name (intendation + 1)
+        ++ getDeploymentsAsYaml server (intendation + 1)
         ++ getFromAsYaml server (intendation + 1)
         ++ getEnvAsYaml server (intendation + 1)
         |> String.dropLeft ((intendation + 1) * 2)
