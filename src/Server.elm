@@ -19,6 +19,7 @@ type From
 type alias Build =
     { kieServerContainerDeployment : String
     , mavenMirrorUrl : String
+    , artifactDir : String
     }
 
 
@@ -37,6 +38,7 @@ emptyBuild : Build
 emptyBuild =
     { kieServerContainerDeployment = ""
     , mavenMirrorUrl = ""
+    , artifactDir = ""
     }
 
 
@@ -103,6 +105,7 @@ type Msg
 type BuildMsg
     = ChangeKieServerContainerDeployment String
     | ChangeMavenMirrorUrl String
+    | ChangeArtifactDir String
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -167,6 +170,9 @@ mapBuildMsg msg build =
 
         ChangeMavenMirrorUrl newMavenMirrorUrl ->
             { build | mavenMirrorUrl = newMavenMirrorUrl } |> checkBuildContent
+
+        ChangeArtifactDir newArtifactDir ->
+            { build | artifactDir = newArtifactDir } |> checkBuildContent
 
 
 checkBuildContent : Build -> Maybe Build
@@ -249,6 +255,9 @@ getBuildView server msg =
                         , br [] []
                         , text "The Maven mirror URL: "
                         , input [ placeholder "Maven mirror", value build.mavenMirrorUrl, onInput (ChangeMavenMirrorUrl >> BuildMsg >> msg) ] []
+                        , br [] []
+                        , text "List of artifact directories: "
+                        , input [ placeholder "Artifact directories", value build.artifactDir, onInput (ChangeArtifactDir >> BuildMsg >> msg) ] []
                         ]
 
                     Nothing ->
@@ -335,6 +344,7 @@ getBuildAsYaml server intendation =
             YamlUtils.getNameWithIntendation "build" intendation
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "kieServerContainerDeployment" build.kieServerContainerDeployment (intendation + 1)
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "mavenMirrorURL" build.mavenMirrorUrl (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "artifactDir" build.artifactDir (intendation + 1)
 
         Nothing ->
             ""
