@@ -18,6 +18,7 @@ type From
 
 type alias Build =
     { kieServerContainerDeployment : String
+    , mavenMirrorUrl : String
     }
 
 
@@ -34,7 +35,9 @@ type alias Server =
 
 emptyBuild : Build
 emptyBuild =
-    { kieServerContainerDeployment = "" }
+    { kieServerContainerDeployment = ""
+    , mavenMirrorUrl = ""
+    }
 
 
 emptyServer : Server
@@ -98,8 +101,8 @@ type Msg
 
 
 type BuildMsg
-    = AddKieServerContainerDeployment String
-    | ChangeKieServerContainerDeployment String
+    = ChangeKieServerContainerDeployment String
+    | ChangeMavenMirrorUrl String
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -159,11 +162,11 @@ mapServerEvent msg server =
 mapBuildMsg : BuildMsg -> Build -> Maybe Build
 mapBuildMsg msg build =
     case msg of
-        AddKieServerContainerDeployment newKieServerContainerDeployment ->
-            Just { kieServerContainerDeployment = newKieServerContainerDeployment }
-
         ChangeKieServerContainerDeployment newKieServerContainerDeployment ->
             { build | kieServerContainerDeployment = newKieServerContainerDeployment } |> checkBuildContent
+
+        ChangeMavenMirrorUrl newMavenMirrorUrl ->
+            { build | mavenMirrorUrl = newMavenMirrorUrl } |> checkBuildContent
 
 
 checkBuildContent : Build -> Maybe Build
@@ -238,10 +241,16 @@ getBuildView : Server -> (Msg -> msg) -> List (Html msg)
 getBuildView server msg =
     case server.build of
         Just build ->
-            [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", value build.kieServerContainerDeployment, onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
+            [ br [] []
+            , text "The Maven GAV to deploy: "
+            , input [ placeholder "Maven GAV", value build.kieServerContainerDeployment, onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] []
+            , br [] []
+            , text "The Maven mirror URL: "
+            , input [ placeholder "Maven mirror", value build.mavenMirrorUrl, onInput (ChangeMavenMirrorUrl >> BuildMsg >> msg) ] []
+            ]
 
         Nothing ->
-            [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", onInput (AddKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
+            [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
 
 
 getEnvVariableView : (Msg -> msg) -> Server -> List (Html msg)
@@ -319,7 +328,8 @@ getBuildAsYaml server intendation =
     case server.build of
         Just build ->
             YamlUtils.getNameWithIntendation "build" intendation
-                ++ YamlUtils.getNameAndValueWithIntendation "kieServerContainerDeployment" build.kieServerContainerDeployment (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "kieServerContainerDeployment" build.kieServerContainerDeployment (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "mavenMirrorURL" build.mavenMirrorUrl (intendation + 1)
 
         Nothing ->
             ""
