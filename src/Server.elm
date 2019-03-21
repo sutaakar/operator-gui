@@ -239,18 +239,23 @@ getFromOptions selectedFrom =
 
 getBuildView : Server -> (Msg -> msg) -> List (Html msg)
 getBuildView server msg =
-    case server.build of
-        Just build ->
-            [ br [] []
-            , text "The Maven GAV to deploy: "
-            , input [ placeholder "Maven GAV", value build.kieServerContainerDeployment, onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] []
-            , br [] []
-            , text "The Maven mirror URL: "
-            , input [ placeholder "Maven mirror", value build.mavenMirrorUrl, onInput (ChangeMavenMirrorUrl >> BuildMsg >> msg) ] []
-            ]
+    [ Html.fieldset []
+        ([ Html.legend [] [ text "S2I configuration" ] ]
+            ++ (case server.build of
+                    Just build ->
+                        [ br [] []
+                        , text "The Maven GAV to deploy: "
+                        , input [ placeholder "Maven GAV", value build.kieServerContainerDeployment, onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] []
+                        , br [] []
+                        , text "The Maven mirror URL: "
+                        , input [ placeholder "Maven mirror", value build.mavenMirrorUrl, onInput (ChangeMavenMirrorUrl >> BuildMsg >> msg) ] []
+                        ]
 
-        Nothing ->
-            [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
+                    Nothing ->
+                        [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
+               )
+        )
+    ]
 
 
 getEnvVariableView : (Msg -> msg) -> Server -> List (Html msg)
