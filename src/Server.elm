@@ -1,7 +1,7 @@
 module Server exposing (Msg, Server, emptyServer, getServerAsYaml, getServerView, mapServerEvent)
 
 import EnvItem
-import Html exposing (Attribute, Html, div, input, option, select, text)
+import Html exposing (Attribute, Html, br, div, input, option, select, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import YamlUtils
@@ -16,14 +16,25 @@ type From
     | DockerImage String
 
 
+type alias Build =
+    { kieServerContainerDeployment : String
+    }
+
+
 type alias Server =
     { name : String
     , deployments : Maybe Int
     , replicas : Maybe Int
     , keystoreSecret : String
     , from : Maybe From
+    , build : Maybe Build
     , env : Maybe (List EnvItem.EnvItem)
     }
+
+
+emptyBuild : Build
+emptyBuild =
+    { kieServerContainerDeployment = "" }
 
 
 emptyServer : Server
@@ -33,6 +44,7 @@ emptyServer =
     , replicas = Nothing
     , keystoreSecret = ""
     , from = Nothing
+    , build = Nothing
     , env = Nothing
     }
 
@@ -81,7 +93,13 @@ type Msg
     | ChangeFrom String
     | ChangeFromName String
     | ChangeFromNamespace String
+    | BuildMsg BuildMsg
     | EnvItemMsg EnvItem.Msg
+
+
+type BuildMsg
+    = AddKieServerContainerDeployment String
+    | ChangeKieServerContainerDeployment String
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -129,6 +147,33 @@ mapServerEvent msg server =
         ChangeKeystoreSecret newKeystoreSecret ->
             { server | keystoreSecret = newKeystoreSecret }
 
+        BuildMsg buildMsg ->
+            case server.build of
+                Just build ->
+                    { server | build = mapBuildMsg buildMsg build }
+
+                Nothing ->
+                    { server | build = mapBuildMsg buildMsg emptyBuild }
+
+
+mapBuildMsg : BuildMsg -> Build -> Maybe Build
+mapBuildMsg msg build =
+    case msg of
+        AddKieServerContainerDeployment newKieServerContainerDeployment ->
+            Just { kieServerContainerDeployment = newKieServerContainerDeployment }
+
+        ChangeKieServerContainerDeployment newKieServerContainerDeployment ->
+            { build | kieServerContainerDeployment = newKieServerContainerDeployment } |> checkBuildContent
+
+
+checkBuildContent : Build -> Maybe Build
+checkBuildContent build =
+    if build /= emptyBuild then
+        Just build
+
+    else
+        Nothing
+
 
 
 -- VIEW
@@ -142,6 +187,7 @@ getServerView msg server =
     , div [] [ text "Keystore secret name: ", input [ placeholder "Keystore secret name", value server.keystoreSecret, onInput (ChangeKeystoreSecret >> msg) ] [] ]
     ]
         ++ getFromView server.from msg
+        ++ getBuildView server msg
         ++ getEnvVariableView msg server
 
 
@@ -188,6 +234,16 @@ getFromOptions selectedFrom =
             ]
 
 
+getBuildView : Server -> (Msg -> msg) -> List (Html msg)
+getBuildView server msg =
+    case server.build of
+        Just build ->
+            [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", value build.kieServerContainerDeployment, onInput (ChangeKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
+
+        Nothing ->
+            [ br [] [], text "The Maven GAV to deploy: ", input [ placeholder "Maven GAV", onInput (AddKieServerContainerDeployment >> BuildMsg >> msg) ] [] ]
+
+
 getEnvVariableView : (Msg -> msg) -> Server -> List (Html msg)
 getEnvVariableView msg server =
     case server.env of
@@ -209,6 +265,7 @@ getServerAsYaml server intendation =
         ++ getReplicasAsYaml server (intendation + 1)
         ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "keystoreSecret" server.keystoreSecret (intendation + 1)
         ++ getFromAsYaml server (intendation + 1)
+        ++ getBuildAsYaml server (intendation + 1)
         ++ getEnvAsYaml server (intendation + 1)
         |> String.dropLeft ((intendation + 1) * 2)
         |> String.append (String.repeat intendation "  " ++ "- ")
@@ -252,6 +309,17 @@ getFromAsYaml server intendation =
             YamlUtils.getNameWithIntendation "from" intendation
                 ++ YamlUtils.getNameAndValueWithIntendation "kind" "DockerImage" (intendation + 1)
                 ++ YamlUtils.getNameAndValueWithIntendation "name" name (intendation + 1)
+
+        Nothing ->
+            ""
+
+
+getBuildAsYaml : Server -> Int -> String
+getBuildAsYaml server intendation =
+    case server.build of
+        Just build ->
+            YamlUtils.getNameWithIntendation "build" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "kieServerContainerDeployment" build.kieServerContainerDeployment (intendation + 1)
 
         Nothing ->
             ""
