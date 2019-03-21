@@ -21,6 +21,7 @@ type alias Build =
     , mavenMirrorUrl : String
     , artifactDir : String
     , uri : String
+    , reference : String
     }
 
 
@@ -41,6 +42,7 @@ emptyBuild =
     , mavenMirrorUrl = ""
     , artifactDir = ""
     , uri = ""
+    , reference = ""
     }
 
 
@@ -109,6 +111,7 @@ type BuildMsg
     | ChangeMavenMirrorUrl String
     | ChangeArtifactDir String
     | ChangeGitUri String
+    | ChangeGitReference String
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -179,6 +182,9 @@ mapBuildMsg msg build =
 
         ChangeGitUri newUri ->
             { build | uri = newUri } |> checkBuildContent
+
+        ChangeGitReference newReference ->
+            { build | reference = newReference } |> checkBuildContent
 
 
 checkBuildContent : Build -> Maybe Build
@@ -267,6 +273,9 @@ getBuildView server msg =
                         , br [] []
                         , text "Git URI: "
                         , input [ placeholder "Git URI", value build.uri, onInput (ChangeGitUri >> BuildMsg >> msg) ] []
+                        , br [] []
+                        , text "Git repository branch: "
+                        , input [ placeholder "Git repository branch", value build.reference, onInput (ChangeGitReference >> BuildMsg >> msg) ] []
                         ]
 
                     Nothing ->
@@ -356,6 +365,7 @@ getBuildAsYaml server intendation =
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "artifactDir" build.artifactDir (intendation + 1)
                 ++ YamlUtils.getNameWithIntendation "gitSource" (intendation + 1)
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "uri" build.uri (intendation + 2)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "reference" build.reference (intendation + 2)
 
         Nothing ->
             ""
