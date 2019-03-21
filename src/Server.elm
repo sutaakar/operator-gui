@@ -20,6 +20,7 @@ type alias Build =
     { kieServerContainerDeployment : String
     , mavenMirrorUrl : String
     , artifactDir : String
+    , uri : String
     }
 
 
@@ -39,6 +40,7 @@ emptyBuild =
     { kieServerContainerDeployment = ""
     , mavenMirrorUrl = ""
     , artifactDir = ""
+    , uri = ""
     }
 
 
@@ -106,6 +108,7 @@ type BuildMsg
     = ChangeKieServerContainerDeployment String
     | ChangeMavenMirrorUrl String
     | ChangeArtifactDir String
+    | ChangeGitUri String
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -173,6 +176,9 @@ mapBuildMsg msg build =
 
         ChangeArtifactDir newArtifactDir ->
             { build | artifactDir = newArtifactDir } |> checkBuildContent
+
+        ChangeGitUri newUri ->
+            { build | uri = newUri } |> checkBuildContent
 
 
 checkBuildContent : Build -> Maybe Build
@@ -258,6 +264,9 @@ getBuildView server msg =
                         , br [] []
                         , text "List of artifact directories: "
                         , input [ placeholder "Artifact directories", value build.artifactDir, onInput (ChangeArtifactDir >> BuildMsg >> msg) ] []
+                        , br [] []
+                        , text "Git URI: "
+                        , input [ placeholder "Git URI", value build.uri, onInput (ChangeGitUri >> BuildMsg >> msg) ] []
                         ]
 
                     Nothing ->
@@ -345,6 +354,8 @@ getBuildAsYaml server intendation =
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "kieServerContainerDeployment" build.kieServerContainerDeployment (intendation + 1)
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "mavenMirrorURL" build.mavenMirrorUrl (intendation + 1)
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "artifactDir" build.artifactDir (intendation + 1)
+                ++ YamlUtils.getNameWithIntendation "gitSource" (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "uri" build.uri (intendation + 2)
 
         Nothing ->
             ""
