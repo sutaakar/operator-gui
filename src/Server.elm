@@ -22,6 +22,7 @@ type alias Build =
     , artifactDir : String
     , uri : String
     , reference : String
+    , contextDir : String
     }
 
 
@@ -43,6 +44,7 @@ emptyBuild =
     , artifactDir = ""
     , uri = ""
     , reference = ""
+    , contextDir = ""
     }
 
 
@@ -112,6 +114,7 @@ type BuildMsg
     | ChangeArtifactDir String
     | ChangeGitUri String
     | ChangeGitReference String
+    | ChangeGitContextDir String
 
 
 mapServerEvent : Msg -> Server -> Server
@@ -185,6 +188,9 @@ mapBuildMsg msg build =
 
         ChangeGitReference newReference ->
             { build | reference = newReference } |> checkBuildContent
+
+        ChangeGitContextDir newContextDir ->
+            { build | contextDir = newContextDir } |> checkBuildContent
 
 
 checkBuildContent : Build -> Maybe Build
@@ -276,6 +282,9 @@ getBuildView server msg =
                         , br [] []
                         , text "Git repository branch: "
                         , input [ placeholder "Git repository branch", value build.reference, onInput (ChangeGitReference >> BuildMsg >> msg) ] []
+                        , br [] []
+                        , text "Code context/subdirectory: "
+                        , input [ placeholder "Code context/subdirectory", value build.contextDir, onInput (ChangeGitContextDir >> BuildMsg >> msg) ] []
                         ]
 
                     Nothing ->
@@ -366,6 +375,7 @@ getBuildAsYaml server intendation =
                 ++ YamlUtils.getNameWithIntendation "gitSource" (intendation + 1)
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "uri" build.uri (intendation + 2)
                 ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "reference" build.reference (intendation + 2)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "contextDir" build.contextDir (intendation + 2)
 
         Nothing ->
             ""
