@@ -17,11 +17,11 @@ type Environment
     | Rhdm_authoring String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhdm_production_immutable String (Maybe Console.Console) (Maybe Servers.Servers)
     | Rhdm_trial String (Maybe Console.Console) (Maybe Servers.Servers)
-    | Rhpam_authoring_ha String
-    | Rhpam_authoring String
-    | Rhpam_production_immutable String
-    | Rhpam_production String
-    | Rhpam_trial String
+    | Rhpam_authoring_ha String (Maybe Console.Console) (Maybe Servers.Servers)
+    | Rhpam_authoring String (Maybe Console.Console) (Maybe Servers.Servers)
+    | Rhpam_production_immutable String (Maybe Console.Console) (Maybe Servers.Servers)
+    | Rhpam_production String (Maybe Console.Console) (Maybe Servers.Servers)
+    | Rhpam_trial String (Maybe Console.Console) (Maybe Servers.Servers)
 
 
 rhdm_authoring_ha : Environment
@@ -46,27 +46,27 @@ rhdm_trial =
 
 rhpam_authoring_ha : Environment
 rhpam_authoring_ha =
-    Rhpam_authoring_ha "rhpam-authoring-ha"
+    Rhpam_authoring_ha "rhpam-authoring-ha" Nothing Nothing
 
 
 rhpam_authoring : Environment
 rhpam_authoring =
-    Rhpam_authoring "rhpam-authoring"
+    Rhpam_authoring "rhpam-authoring" Nothing Nothing
 
 
 rhpam_production_immutable : Environment
 rhpam_production_immutable =
-    Rhpam_production_immutable "rhpam-production-immutable"
+    Rhpam_production_immutable "rhpam-production-immutable" Nothing Nothing
 
 
 rhpam_production : Environment
 rhpam_production =
-    Rhpam_production "rhpam-production"
+    Rhpam_production "rhpam-production" Nothing Nothing
 
 
 rhpam_trial : Environment
 rhpam_trial =
-    Rhpam_trial "rhpam-trial"
+    Rhpam_trial "rhpam-trial" Nothing Nothing
 
 
 environments : List Environment
@@ -89,19 +89,19 @@ getEnvironmentName environment =
         Rhdm_trial name _ _ ->
             name
 
-        Rhpam_authoring_ha name ->
+        Rhpam_authoring_ha name _ _ ->
             name
 
-        Rhpam_authoring name ->
+        Rhpam_authoring name _ _ ->
             name
 
-        Rhpam_production_immutable name ->
+        Rhpam_production_immutable name _ _ ->
             name
 
-        Rhpam_production name ->
+        Rhpam_production name _ _ ->
             name
 
-        Rhpam_trial name ->
+        Rhpam_trial name _ _ ->
             name
 
 
@@ -157,8 +157,35 @@ mapEnvironmentEvent msg environment =
                 Rhdm_production_immutable name Nothing servers ->
                     Rhdm_production_immutable name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
 
-                _ ->
-                    environment
+                Rhpam_authoring_ha name (Just console) servers ->
+                    Rhpam_authoring_ha name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhpam_authoring_ha name Nothing servers ->
+                    Rhpam_authoring_ha name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
+                Rhpam_authoring name (Just console) servers ->
+                    Rhpam_authoring name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhpam_authoring name Nothing servers ->
+                    Rhpam_authoring name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
+                Rhpam_production_immutable name (Just console) servers ->
+                    Rhpam_production_immutable name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhpam_production_immutable name Nothing servers ->
+                    Rhpam_production_immutable name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
+                Rhpam_production name (Just console) servers ->
+                    Rhpam_production name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhpam_production name Nothing servers ->
+                    Rhpam_production name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
+
+                Rhpam_trial name (Just console) servers ->
+                    Rhpam_trial name (Console.mapConsoleEvent consoleMessage console) servers
+
+                Rhpam_trial name Nothing servers ->
+                    Rhpam_trial name (Console.mapConsoleEvent consoleMessage Console.emptyConsole) servers
 
         ServersMsg serversMessage ->
             case environment of
@@ -186,8 +213,35 @@ mapEnvironmentEvent msg environment =
                 Rhdm_production_immutable name console Nothing ->
                     Rhdm_production_immutable name console (Servers.mapServersEvent serversMessage { servers = [] })
 
-                _ ->
-                    environment
+                Rhpam_authoring_ha name console (Just servers) ->
+                    Rhpam_authoring_ha name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhpam_authoring_ha name console Nothing ->
+                    Rhpam_authoring_ha name console (Servers.mapServersEvent serversMessage { servers = [] })
+
+                Rhpam_authoring name console (Just servers) ->
+                    Rhpam_authoring name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhpam_authoring name console Nothing ->
+                    Rhpam_authoring name console (Servers.mapServersEvent serversMessage { servers = [] })
+
+                Rhpam_production_immutable name console (Just servers) ->
+                    Rhpam_production_immutable name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhpam_production_immutable name console Nothing ->
+                    Rhpam_production_immutable name console (Servers.mapServersEvent serversMessage { servers = [] })
+
+                Rhpam_production name console (Just servers) ->
+                    Rhpam_production name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhpam_production name console Nothing ->
+                    Rhpam_production name console (Servers.mapServersEvent serversMessage { servers = [] })
+
+                Rhpam_trial name console (Just servers) ->
+                    Rhpam_trial name console (Servers.mapServersEvent serversMessage servers)
+
+                Rhpam_trial name console Nothing ->
+                    Rhpam_trial name console (Servers.mapServersEvent serversMessage { servers = [] })
 
 
 
@@ -199,6 +253,11 @@ getEnvironmentView msg environment =
     [ div [] [ text "Environment: ", select [ onInput (SelectEnvironment >> msg) ] (List.map (toEnvironmentOption environment) environments) ] ]
         ++ getConsoleView msg environment
         ++ getServersView msg environment
+
+
+toEnvironmentOption : Environment -> Environment -> Html msg
+toEnvironmentOption selectedEnvironment environment =
+    option [ Html.Attributes.selected (getEnvironmentName selectedEnvironment == getEnvironmentName environment), value (getEnvironmentName environment) ] [ text (getEnvironmentName environment) ]
 
 
 getConsoleView : (Msg -> msg) -> Environment -> List (Html msg)
@@ -228,13 +287,35 @@ getConsoleView msg environment =
         Rhdm_production_immutable _ Nothing _ ->
             Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
-        _ ->
-            []
+        Rhpam_authoring_ha _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
 
+        Rhpam_authoring_ha _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
-toEnvironmentOption : Environment -> Environment -> Html msg
-toEnvironmentOption selectedEnvironment environment =
-    option [ Html.Attributes.selected (getEnvironmentName selectedEnvironment == getEnvironmentName environment), value (getEnvironmentName environment) ] [ text (getEnvironmentName environment) ]
+        Rhpam_authoring _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
+
+        Rhpam_authoring _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
+
+        Rhpam_production_immutable _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
+
+        Rhpam_production_immutable _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
+
+        Rhpam_production _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
+
+        Rhpam_production _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
+
+        Rhpam_trial _ (Just console) _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) console
+
+        Rhpam_trial _ Nothing _ ->
+            Console.getConsoleView (ConsoleMsg >> msg) Console.emptyConsole
 
 
 getServersView : (Msg -> msg) -> Environment -> List (Html msg)
@@ -264,8 +345,35 @@ getServersView msg environment =
         Rhdm_production_immutable _ _ Nothing ->
             Servers.getServersView (ServersMsg >> msg) { servers = [] }
 
-        _ ->
-            []
+        Rhpam_authoring_ha _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhpam_authoring_ha _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        Rhpam_authoring _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhpam_authoring _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        Rhpam_production_immutable _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhpam_production_immutable _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        Rhpam_production _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhpam_production _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+
+        Rhpam_trial _ _ (Just servers) ->
+            Servers.getServersView (ServersMsg >> msg) servers
+
+        Rhpam_trial _ _ Nothing ->
+            Servers.getServersView (ServersMsg >> msg) { servers = [] }
 
 
 
@@ -304,6 +412,21 @@ getConsoleAsYaml environment intendation =
         Rhdm_production_immutable _ (Just console) _ ->
             Console.getConsoleAsYaml console intendation
 
+        Rhpam_authoring_ha _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
+        Rhpam_authoring _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
+        Rhpam_production_immutable _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
+        Rhpam_production _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
+        Rhpam_trial _ (Just console) _ ->
+            Console.getConsoleAsYaml console intendation
+
         _ ->
             ""
 
@@ -321,6 +444,21 @@ getServersAsYaml environment intendation =
             Servers.getServersAsYaml servers intendation
 
         Rhdm_production_immutable _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhpam_authoring_ha _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhpam_authoring _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhpam_production_immutable _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhpam_production _ _ (Just servers) ->
+            Servers.getServersAsYaml servers intendation
+
+        Rhpam_trial _ _ (Just servers) ->
             Servers.getServersAsYaml servers intendation
 
         _ ->
