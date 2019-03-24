@@ -208,14 +208,18 @@ checkBuildContent build =
 
 getServerView : (Msg -> msg) -> Server -> List (Html msg)
 getServerView msg server =
-    [ div [] [ text "Server name: ", input [ placeholder "Server name", value server.name, onInput (ChangeName >> msg) ] [] ]
-    , div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ]
-    , div [] [ text "Kie server replicas for DeploymentConfig: ", input [ placeholder "DeploymentConfig replicas", value (getReplicasAsString server), onInput (ChangeReplicas >> msg) ] [] ]
-    , div [] [ text "Keystore secret name: ", input [ placeholder "Keystore secret name", value server.keystoreSecret, onInput (ChangeKeystoreSecret >> msg) ] [] ]
+    [ Html.fieldset []
+        ([ Html.legend [] [ text "Configuration of the individual KIE server group" ]
+         , div [] [ text "Server name: ", input [ placeholder "Server name", value server.name, onInput (ChangeName >> msg) ] [] ]
+         , div [] [ text "Number of Kie server deployments: ", input [ placeholder "Deployments", value (getDeploymentsAsString server), onInput (ChangeDeployments >> msg) ] [] ]
+         , div [] [ text "Kie server replicas for DeploymentConfig: ", input [ placeholder "DeploymentConfig replicas", value (getReplicasAsString server), onInput (ChangeReplicas >> msg) ] [] ]
+         , div [] [ text "Keystore secret name: ", input [ placeholder "Keystore secret name", value server.keystoreSecret, onInput (ChangeKeystoreSecret >> msg) ] [] ]
+         ]
+            ++ getFromView server.from msg
+            ++ getBuildView server msg
+            ++ getEnvVariableView msg server
+        )
     ]
-        ++ getFromView server.from msg
-        ++ getBuildView server msg
-        ++ getEnvVariableView msg server
 
 
 getFromView : Maybe From -> (Msg -> msg) -> List (Html msg)
