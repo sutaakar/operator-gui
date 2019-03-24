@@ -93,12 +93,14 @@ updateImageRegistry imageRegistryMsg =
 view : KieApp -> Html Msg
 view kieApp =
     div []
-        ([ div [] [ text "Kie app name: ", input [ placeholder "Kie app name", value kieApp.name, onInput ChangeName ] [] ]
-         ]
-            ++ Environment.getEnvironmentView EnvironmentMsg kieApp.environment
-            ++ getImageRegistryView kieApp
-            ++ [ div [] [ textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ] ]
-        )
+        [ div [ style "width" "60%", style "float" "left" ]
+            ([ div [] [ text "Kie app name: ", input [ placeholder "Kie app name", value kieApp.name, onInput ChangeName ] [] ]
+             ]
+                ++ Environment.getEnvironmentView EnvironmentMsg kieApp.environment
+                ++ getImageRegistryView kieApp
+            )
+        , div [ style "width" "40%", style "float" "left" ] [ text "Kie app custom resource YAML: ", textarea [ cols 80, rows 25, readonly True ] [ text (getKieAppAsYaml kieApp) ] ]
+        ]
 
 
 getImageRegistryView : KieApp -> List (Html Msg)
