@@ -27,9 +27,9 @@ type alias Build =
 
 
 type Database
-    = H2
-    | MySQL
-    | PostgreSQL
+    = H2 String
+    | MySQL String
+    | PostgreSQL String
 
 
 type alias Server =
@@ -104,13 +104,13 @@ getDatabaseFromName : String -> Maybe Database
 getDatabaseFromName databaseName =
     case databaseName of
         "H2" ->
-            Just H2
+            Just (H2 "")
 
         "MySQL" ->
-            Just MySQL
+            Just (MySQL "")
 
         "PostgreSQL" ->
-            Just PostgreSQL
+            Just (PostgreSQL "")
 
         _ ->
             Nothing
@@ -131,6 +131,7 @@ type Msg
     | BuildMsg BuildMsg
     | EnvItemMsg EnvItem.Msg
     | ChangeDatabaseType String
+    | ChangeDatabasePvcSize String
 
 
 type BuildMsg
@@ -197,6 +198,23 @@ mapServerEvent msg server =
 
         ChangeDatabaseType newDatabaseType ->
             { server | database = getDatabaseFromName newDatabaseType }
+
+        ChangeDatabasePvcSize newPersistentVolumeClaimSize ->
+            { server
+                | database =
+                    case server.database of
+                        Just (H2 _) ->
+                            Just (H2 newPersistentVolumeClaimSize)
+
+                        Just (MySQL _) ->
+                            Just (MySQL newPersistentVolumeClaimSize)
+
+                        Just (PostgreSQL _) ->
+                            Just (PostgreSQL newPersistentVolumeClaimSize)
+
+                        Nothing ->
+                            Nothing
+            }
 
 
 mapBuildMsg : BuildMsg -> Build -> Maybe Build
@@ -348,14 +366,29 @@ getDatabaseView server msg =
         Nothing ->
             [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions True False False False) ]
 
-        Just H2 ->
-            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False True False False) ]
+        Just (H2 persistentVolumeClaimSize) ->
+            [ text "Database type: "
+            , select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False True False False)
+            , br [] []
+            , text "Size of the PersistentVolumeClaim: "
+            , input [ placeholder "PersistentVolumeClaim size", value persistentVolumeClaimSize, onInput (ChangeDatabasePvcSize >> msg) ] []
+            ]
 
-        Just MySQL ->
-            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False False True False) ]
+        Just (MySQL persistentVolumeClaimSize) ->
+            [ text "Database type: "
+            , select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False False True False)
+            , br [] []
+            , text "Size of the PersistentVolumeClaim: "
+            , input [ placeholder "PersistentVolumeClaim size", value persistentVolumeClaimSize, onInput (ChangeDatabasePvcSize >> msg) ] []
+            ]
 
-        Just PostgreSQL ->
-            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False False False True) ]
+        Just (PostgreSQL persistentVolumeClaimSize) ->
+            [ text "Database type: "
+            , select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False False False True)
+            , br [] []
+            , text "Size of the PersistentVolumeClaim: "
+            , input [ placeholder "PersistentVolumeClaim size", value persistentVolumeClaimSize, onInput (ChangeDatabasePvcSize >> msg) ] []
+            ]
 
 
 getDatabaseOptions : Bool -> Bool -> Bool -> Bool -> List (Html msg)
@@ -458,17 +491,20 @@ getEnvAsYaml server intendation =
 getDatabaseAsYaml : Server -> Int -> String
 getDatabaseAsYaml server intendation =
     case server.database of
-        Just H2 ->
+        Just (H2 persistentVolumeClaimSize) ->
             YamlUtils.getNameWithIntendation "database" intendation
                 ++ YamlUtils.getNameAndValueWithIntendation "type" "h2" (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "size" persistentVolumeClaimSize (intendation + 1)
 
-        Just MySQL ->
+        Just (MySQL persistentVolumeClaimSize) ->
             YamlUtils.getNameWithIntendation "database" intendation
                 ++ YamlUtils.getNameAndValueWithIntendation "type" "mysql" (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "size" persistentVolumeClaimSize (intendation + 1)
 
-        Just PostgreSQL ->
+        Just (PostgreSQL persistentVolumeClaimSize) ->
             YamlUtils.getNameWithIntendation "database" intendation
                 ++ YamlUtils.getNameAndValueWithIntendation "type" "postgresql" (intendation + 1)
+                ++ YamlUtils.getNameAndNonEmptyValueWithIntendation "size" persistentVolumeClaimSize (intendation + 1)
 
         Nothing ->
             ""
