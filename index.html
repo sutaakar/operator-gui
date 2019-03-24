@@ -4741,29 +4741,34 @@ var author$project$Environment$Rhdm_production_immutable = F3(
 	function (a, b, c) {
 		return {$: 'Rhdm_production_immutable', a: a, b: b, c: c};
 	});
+var author$project$Environment$Rhpam_authoring = F3(
+	function (a, b, c) {
+		return {$: 'Rhpam_authoring', a: a, b: b, c: c};
+	});
+var author$project$Environment$Rhpam_authoring_ha = F3(
+	function (a, b, c) {
+		return {$: 'Rhpam_authoring_ha', a: a, b: b, c: c};
+	});
+var author$project$Environment$Rhpam_production = F3(
+	function (a, b, c) {
+		return {$: 'Rhpam_production', a: a, b: b, c: c};
+	});
+var author$project$Environment$Rhpam_production_immutable = F3(
+	function (a, b, c) {
+		return {$: 'Rhpam_production_immutable', a: a, b: b, c: c};
+	});
+var author$project$Environment$Rhpam_trial = F3(
+	function (a, b, c) {
+		return {$: 'Rhpam_trial', a: a, b: b, c: c};
+	});
 var author$project$Environment$rhdm_authoring = A3(author$project$Environment$Rhdm_authoring, 'rhdm-authoring', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
 var author$project$Environment$rhdm_authoring_ha = A3(author$project$Environment$Rhdm_authoring_ha, 'rhdm-authoring-ha', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
 var author$project$Environment$rhdm_production_immutable = A3(author$project$Environment$Rhdm_production_immutable, 'rhdm-production-immutable', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
-var author$project$Environment$Rhpam_authoring = function (a) {
-	return {$: 'Rhpam_authoring', a: a};
-};
-var author$project$Environment$rhpam_authoring = author$project$Environment$Rhpam_authoring('rhpam-authoring');
-var author$project$Environment$Rhpam_authoring_ha = function (a) {
-	return {$: 'Rhpam_authoring_ha', a: a};
-};
-var author$project$Environment$rhpam_authoring_ha = author$project$Environment$Rhpam_authoring_ha('rhpam-authoring-ha');
-var author$project$Environment$Rhpam_production = function (a) {
-	return {$: 'Rhpam_production', a: a};
-};
-var author$project$Environment$rhpam_production = author$project$Environment$Rhpam_production('rhpam-production');
-var author$project$Environment$Rhpam_production_immutable = function (a) {
-	return {$: 'Rhpam_production_immutable', a: a};
-};
-var author$project$Environment$rhpam_production_immutable = author$project$Environment$Rhpam_production_immutable('rhpam-production-immutable');
-var author$project$Environment$Rhpam_trial = function (a) {
-	return {$: 'Rhpam_trial', a: a};
-};
-var author$project$Environment$rhpam_trial = author$project$Environment$Rhpam_trial('rhpam-trial');
+var author$project$Environment$rhpam_authoring = A3(author$project$Environment$Rhpam_authoring, 'rhpam-authoring', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+var author$project$Environment$rhpam_authoring_ha = A3(author$project$Environment$Rhpam_authoring_ha, 'rhpam-authoring-ha', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+var author$project$Environment$rhpam_production = A3(author$project$Environment$Rhpam_production, 'rhpam-production', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+var author$project$Environment$rhpam_production_immutable = A3(author$project$Environment$Rhpam_production_immutable, 'rhpam-production-immutable', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+var author$project$Environment$rhpam_trial = A3(author$project$Environment$Rhpam_trial, 'rhpam-trial', elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
 var author$project$Environment$environments = _List_fromArray(
 	[author$project$Environment$rhdm_authoring_ha, author$project$Environment$rhdm_authoring, author$project$Environment$rhdm_production_immutable, author$project$Environment$rhdm_trial, author$project$Environment$rhpam_authoring_ha, author$project$Environment$rhpam_authoring, author$project$Environment$rhpam_production_immutable, author$project$Environment$rhpam_production, author$project$Environment$rhpam_trial]);
 var author$project$Environment$getEnvironmentName = function (environment) {
@@ -4817,7 +4822,7 @@ var author$project$Environment$getEnvironmentFromName = function (environmentNam
 			},
 			author$project$Environment$environments));
 };
-var author$project$Server$emptyServer = {deployments: elm$core$Maybe$Nothing, env: elm$core$Maybe$Nothing, from: elm$core$Maybe$Nothing, keystoreSecret: '', name: '', replicas: elm$core$Maybe$Nothing};
+var author$project$Server$emptyServer = {build: elm$core$Maybe$Nothing, database: elm$core$Maybe$Nothing, deployments: elm$core$Maybe$Nothing, env: elm$core$Maybe$Nothing, from: elm$core$Maybe$Nothing, keystoreSecret: '', name: '', replicas: elm$core$Maybe$Nothing};
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
 var elm$core$List$any = F2(
@@ -4860,15 +4865,84 @@ var author$project$Servers$addServerIfNotExists = F2(
 var author$project$Server$DockerImage = function (a) {
 	return {$: 'DockerImage', a: a};
 };
+var author$project$Server$H2 = function (a) {
+	return {$: 'H2', a: a};
+};
 var author$project$Server$ImageStreamTag = F2(
 	function (a, b) {
 		return {$: 'ImageStreamTag', a: a, b: b};
 	});
+var author$project$Server$MySQL = function (a) {
+	return {$: 'MySQL', a: a};
+};
+var author$project$Server$PostgreSQL = function (a) {
+	return {$: 'PostgreSQL', a: a};
+};
+var author$project$Server$emptyBuild = {artifactDir: '', contextDir: '', kieServerContainerDeployment: '', mavenMirrorUrl: '', reference: '', uri: ''};
+var author$project$Server$getDatabaseFromName = function (databaseName) {
+	switch (databaseName) {
+		case 'H2':
+			return elm$core$Maybe$Just(
+				author$project$Server$H2(''));
+		case 'MySQL':
+			return elm$core$Maybe$Just(
+				author$project$Server$MySQL(''));
+		case 'PostgreSQL':
+			return elm$core$Maybe$Just(
+				author$project$Server$PostgreSQL(''));
+		default:
+			return elm$core$Maybe$Nothing;
+	}
+};
 var author$project$Server$getFromFromName = function (fromName) {
 	return (fromName === 'ImageStreamTag') ? elm$core$Maybe$Just(
 		A2(author$project$Server$ImageStreamTag, '', '')) : ((fromName === 'DockerImage') ? elm$core$Maybe$Just(
 		author$project$Server$DockerImage('')) : elm$core$Maybe$Nothing);
 };
+var author$project$Server$checkBuildContent = function (build) {
+	return (!_Utils_eq(build, author$project$Server$emptyBuild)) ? elm$core$Maybe$Just(build) : elm$core$Maybe$Nothing;
+};
+var author$project$Server$mapBuildMsg = F2(
+	function (msg, build) {
+		switch (msg.$) {
+			case 'ChangeKieServerContainerDeployment':
+				var newKieServerContainerDeployment = msg.a;
+				return author$project$Server$checkBuildContent(
+					_Utils_update(
+						build,
+						{kieServerContainerDeployment: newKieServerContainerDeployment}));
+			case 'ChangeMavenMirrorUrl':
+				var newMavenMirrorUrl = msg.a;
+				return author$project$Server$checkBuildContent(
+					_Utils_update(
+						build,
+						{mavenMirrorUrl: newMavenMirrorUrl}));
+			case 'ChangeArtifactDir':
+				var newArtifactDir = msg.a;
+				return author$project$Server$checkBuildContent(
+					_Utils_update(
+						build,
+						{artifactDir: newArtifactDir}));
+			case 'ChangeGitUri':
+				var newUri = msg.a;
+				return author$project$Server$checkBuildContent(
+					_Utils_update(
+						build,
+						{uri: newUri}));
+			case 'ChangeGitReference':
+				var newReference = msg.a;
+				return author$project$Server$checkBuildContent(
+					_Utils_update(
+						build,
+						{reference: newReference}));
+			default:
+				var newContextDir = msg.a;
+				return author$project$Server$checkBuildContent(
+					_Utils_update(
+						build,
+						{contextDir: newContextDir}));
+		}
+	});
 var author$project$Server$mapServerEvent = F2(
 	function (msg, server) {
 		switch (msg.$) {
@@ -4955,11 +5029,59 @@ var author$project$Server$mapServerEvent = F2(
 					{
 						replicas: elm$core$String$toInt(newReplicas)
 					});
-			default:
+			case 'ChangeKeystoreSecret':
 				var newKeystoreSecret = msg.a;
 				return _Utils_update(
 					server,
 					{keystoreSecret: newKeystoreSecret});
+			case 'BuildMsg':
+				var buildMsg = msg.a;
+				var _n6 = server.build;
+				if (_n6.$ === 'Just') {
+					var build = _n6.a;
+					return _Utils_update(
+						server,
+						{
+							build: A2(author$project$Server$mapBuildMsg, buildMsg, build)
+						});
+				} else {
+					return _Utils_update(
+						server,
+						{
+							build: A2(author$project$Server$mapBuildMsg, buildMsg, author$project$Server$emptyBuild)
+						});
+				}
+			case 'ChangeDatabaseType':
+				var newDatabaseType = msg.a;
+				return _Utils_update(
+					server,
+					{
+						database: author$project$Server$getDatabaseFromName(newDatabaseType)
+					});
+			default:
+				var newPersistentVolumeClaimSize = msg.a;
+				return _Utils_update(
+					server,
+					{
+						database: function () {
+							var _n7 = server.database;
+							if (_n7.$ === 'Just') {
+								switch (_n7.a.$) {
+									case 'H2':
+										return elm$core$Maybe$Just(
+											author$project$Server$H2(newPersistentVolumeClaimSize));
+									case 'MySQL':
+										return elm$core$Maybe$Just(
+											author$project$Server$MySQL(newPersistentVolumeClaimSize));
+									default:
+										return elm$core$Maybe$Just(
+											author$project$Server$PostgreSQL(newPersistentVolumeClaimSize));
+								}
+							} else {
+								return elm$core$Maybe$Nothing;
+							}
+						}()
+					});
 		}
 	});
 var author$project$Servers$mapServerEventInServers = F3(
@@ -5090,8 +5212,106 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
 								servers);
 						}
+					case 'Rhpam_authoring_ha':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_authoring_ha,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n7 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_authoring_ha,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					case 'Rhpam_authoring':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_authoring,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n8 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_authoring,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					case 'Rhpam_production_immutable':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_production_immutable,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n9 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_production_immutable,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
+					case 'Rhpam_production':
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_production,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n10 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_production,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
 					default:
-						return environment;
+						if (environment.b.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b.a;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_trial,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, console),
+								servers);
+						} else {
+							var name = environment.a;
+							var _n11 = environment.b;
+							var servers = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_trial,
+								name,
+								A2(author$project$Console$mapConsoleEvent, consoleMessage, author$project$Console$emptyConsole),
+								servers);
+						}
 				}
 			default:
 				var serversMessage = msg.a;
@@ -5109,7 +5329,7 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 						} else {
 							var name = environment.a;
 							var console = environment.b;
-							var _n8 = environment.c;
+							var _n13 = environment.c;
 							return A3(
 								author$project$Environment$Rhdm_trial,
 								name,
@@ -5132,7 +5352,7 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 						} else {
 							var name = environment.a;
 							var console = environment.b;
-							var _n9 = environment.c;
+							var _n14 = environment.c;
 							return A3(
 								author$project$Environment$Rhdm_authoring,
 								name,
@@ -5155,7 +5375,7 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 						} else {
 							var name = environment.a;
 							var console = environment.b;
-							var _n10 = environment.c;
+							var _n15 = environment.c;
 							return A3(
 								author$project$Environment$Rhdm_authoring_ha,
 								name,
@@ -5178,7 +5398,7 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 						} else {
 							var name = environment.a;
 							var console = environment.b;
-							var _n11 = environment.c;
+							var _n16 = environment.c;
 							return A3(
 								author$project$Environment$Rhdm_production_immutable,
 								name,
@@ -5188,8 +5408,121 @@ var author$project$Environment$mapEnvironmentEvent = F2(
 									serversMessage,
 									{servers: _List_Nil}));
 						}
+					case 'Rhpam_authoring_ha':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhpam_authoring_ha,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n17 = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_authoring_ha,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					case 'Rhpam_authoring':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhpam_authoring,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n18 = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_authoring,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					case 'Rhpam_production_immutable':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhpam_production_immutable,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n19 = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_production_immutable,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
+					case 'Rhpam_production':
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhpam_production,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n20 = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_production,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
 					default:
-						return environment;
+						if (environment.c.$ === 'Just') {
+							var name = environment.a;
+							var console = environment.b;
+							var servers = environment.c.a;
+							return A3(
+								author$project$Environment$Rhpam_trial,
+								name,
+								console,
+								A2(author$project$Servers$mapServersEvent, serversMessage, servers));
+						} else {
+							var name = environment.a;
+							var console = environment.b;
+							var _n21 = environment.c;
+							return A3(
+								author$project$Environment$Rhpam_trial,
+								name,
+								console,
+								A2(
+									author$project$Servers$mapServersEvent,
+									serversMessage,
+									{servers: _List_Nil}));
+						}
 				}
 		}
 	});
@@ -6004,8 +6337,76 @@ var author$project$Environment$getConsoleView = F2(
 						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
 						author$project$Console$emptyConsole);
 				}
+			case 'Rhpam_authoring_ha':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n5 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			case 'Rhpam_authoring':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n6 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			case 'Rhpam_production_immutable':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n7 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
+			case 'Rhpam_production':
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n8 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
 			default:
-				return _List_Nil;
+				if (environment.b.$ === 'Just') {
+					var console = environment.b.a;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						console);
+				} else {
+					var _n9 = environment.b;
+					return A2(
+						author$project$Console$getConsoleView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ConsoleMsg, msg),
+						author$project$Console$emptyConsole);
+				}
 		}
 	});
 var author$project$Environment$ServersMsg = function (a) {
@@ -6023,6 +6424,330 @@ var author$project$Server$ChangeName = function (a) {
 var author$project$Server$ChangeReplicas = function (a) {
 	return {$: 'ChangeReplicas', a: a};
 };
+var author$project$Server$BuildMsg = function (a) {
+	return {$: 'BuildMsg', a: a};
+};
+var author$project$Server$ChangeArtifactDir = function (a) {
+	return {$: 'ChangeArtifactDir', a: a};
+};
+var author$project$Server$ChangeGitContextDir = function (a) {
+	return {$: 'ChangeGitContextDir', a: a};
+};
+var author$project$Server$ChangeGitReference = function (a) {
+	return {$: 'ChangeGitReference', a: a};
+};
+var author$project$Server$ChangeGitUri = function (a) {
+	return {$: 'ChangeGitUri', a: a};
+};
+var author$project$Server$ChangeKieServerContainerDeployment = function (a) {
+	return {$: 'ChangeKieServerContainerDeployment', a: a};
+};
+var author$project$Server$ChangeMavenMirrorUrl = function (a) {
+	return {$: 'ChangeMavenMirrorUrl', a: a};
+};
+var author$project$Server$getBuildView = F2(
+	function (server, msg) {
+		return _List_fromArray(
+			[
+				A2(
+				elm$html$Html$fieldset,
+				_List_Nil,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$legend,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('S2I configuration')
+								]))
+						]),
+					function () {
+						var _n0 = server.build;
+						if (_n0.$ === 'Just') {
+							var build = _n0.a;
+							return _List_fromArray(
+								[
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('The Maven GAV to deploy: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Maven GAV'),
+											elm$html$Html$Attributes$value(build.kieServerContainerDeployment),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeKieServerContainerDeployment,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil),
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('The Maven mirror URL: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Maven mirror'),
+											elm$html$Html$Attributes$value(build.mavenMirrorUrl),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeMavenMirrorUrl,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil),
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('List of artifact directories: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Artifact directories'),
+											elm$html$Html$Attributes$value(build.artifactDir),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeArtifactDir,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil),
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('Git URI: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Git URI'),
+											elm$html$Html$Attributes$value(build.uri),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeGitUri,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil),
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('Git repository branch: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Git repository branch'),
+											elm$html$Html$Attributes$value(build.reference),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeGitReference,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil),
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('Code context/subdirectory: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Code context/subdirectory'),
+											elm$html$Html$Attributes$value(build.contextDir),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeGitContextDir,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil)
+								]);
+						} else {
+							return _List_fromArray(
+								[
+									A2(elm$html$Html$br, _List_Nil, _List_Nil),
+									elm$html$Html$text('The Maven GAV to deploy: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Maven GAV'),
+											elm$html$Html$Events$onInput(
+											A2(
+												elm$core$Basics$composeR,
+												author$project$Server$ChangeKieServerContainerDeployment,
+												A2(elm$core$Basics$composeR, author$project$Server$BuildMsg, msg)))
+										]),
+									_List_Nil)
+								]);
+						}
+					}()))
+			]);
+	});
+var author$project$Server$ChangeDatabasePvcSize = function (a) {
+	return {$: 'ChangeDatabasePvcSize', a: a};
+};
+var author$project$Server$ChangeDatabaseType = function (a) {
+	return {$: 'ChangeDatabaseType', a: a};
+};
+var elm$html$Html$option = _VirtualDom_node('option');
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$bool(bool));
+	});
+var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
+var author$project$Server$getDatabaseOptions = F4(
+	function (emptySelected, h2Selected, mySqlSelected, postgreSqlSelected) {
+		return _List_fromArray(
+			[
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(emptySelected),
+						elm$html$Html$Attributes$value('')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('')
+					])),
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(h2Selected),
+						elm$html$Html$Attributes$value('H2')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('H2')
+					])),
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(mySqlSelected),
+						elm$html$Html$Attributes$value('MySQL')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('MySQL')
+					])),
+				A2(
+				elm$html$Html$option,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$selected(postgreSqlSelected),
+						elm$html$Html$Attributes$value('PostgreSQL')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('PostgreSQL')
+					]))
+			]);
+	});
+var elm$html$Html$select = _VirtualDom_node('select');
+var author$project$Server$getDatabaseView = F2(
+	function (server, msg) {
+		var _n0 = server.database;
+		if (_n0.$ === 'Nothing') {
+			return _List_fromArray(
+				[
+					elm$html$Html$text('Database type: '),
+					A2(
+					elm$html$Html$select,
+					_List_fromArray(
+						[
+							elm$html$Html$Events$onInput(
+							A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabaseType, msg))
+						]),
+					A4(author$project$Server$getDatabaseOptions, true, false, false, false))
+				]);
+		} else {
+			switch (_n0.a.$) {
+				case 'H2':
+					var persistentVolumeClaimSize = _n0.a.a;
+					return _List_fromArray(
+						[
+							elm$html$Html$text('Database type: '),
+							A2(
+							elm$html$Html$select,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabaseType, msg))
+								]),
+							A4(author$project$Server$getDatabaseOptions, false, true, false, false)),
+							A2(elm$html$Html$br, _List_Nil, _List_Nil),
+							elm$html$Html$text('Size of the PersistentVolumeClaim: '),
+							A2(
+							elm$html$Html$input,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$placeholder('PersistentVolumeClaim size'),
+									elm$html$Html$Attributes$value(persistentVolumeClaimSize),
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabasePvcSize, msg))
+								]),
+							_List_Nil)
+						]);
+				case 'MySQL':
+					var persistentVolumeClaimSize = _n0.a.a;
+					return _List_fromArray(
+						[
+							elm$html$Html$text('Database type: '),
+							A2(
+							elm$html$Html$select,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabaseType, msg))
+								]),
+							A4(author$project$Server$getDatabaseOptions, false, false, true, false)),
+							A2(elm$html$Html$br, _List_Nil, _List_Nil),
+							elm$html$Html$text('Size of the PersistentVolumeClaim: '),
+							A2(
+							elm$html$Html$input,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$placeholder('PersistentVolumeClaim size'),
+									elm$html$Html$Attributes$value(persistentVolumeClaimSize),
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabasePvcSize, msg))
+								]),
+							_List_Nil)
+						]);
+				default:
+					var persistentVolumeClaimSize = _n0.a.a;
+					return _List_fromArray(
+						[
+							elm$html$Html$text('Database type: '),
+							A2(
+							elm$html$Html$select,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabaseType, msg))
+								]),
+							A4(author$project$Server$getDatabaseOptions, false, false, false, true)),
+							A2(elm$html$Html$br, _List_Nil, _List_Nil),
+							elm$html$Html$text('Size of the PersistentVolumeClaim: '),
+							A2(
+							elm$html$Html$input,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$placeholder('PersistentVolumeClaim size'),
+									elm$html$Html$Attributes$value(persistentVolumeClaimSize),
+									elm$html$Html$Events$onInput(
+									A2(elm$core$Basics$composeR, author$project$Server$ChangeDatabasePvcSize, msg))
+								]),
+							_List_Nil)
+						]);
+			}
+		}
+	});
 var author$project$Server$getDeploymentsAsString = function (server) {
 	var _n0 = server.deployments;
 	if (_n0.$ === 'Just') {
@@ -6061,16 +6786,6 @@ var author$project$Server$ChangeFromName = function (a) {
 var author$project$Server$ChangeFromNamespace = function (a) {
 	return {$: 'ChangeFromNamespace', a: a};
 };
-var elm$html$Html$option = _VirtualDom_node('option');
-var elm$json$Json$Encode$bool = _Json_wrap;
-var elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$bool(bool));
-	});
-var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
 var author$project$Server$getFromOptions = function (selectedFrom) {
 	if (selectedFrom.$ === 'Nothing') {
 		return _List_fromArray(
@@ -6188,7 +6903,6 @@ var author$project$Server$getFromOptions = function (selectedFrom) {
 		}
 	}
 };
-var elm$html$Html$select = _VirtualDom_node('select');
 var author$project$Server$getFromView = F2(
 	function (selectedFrom, msg) {
 		if (selectedFrom.$ === 'Nothing') {
@@ -6277,85 +6991,102 @@ var author$project$Server$getReplicasAsString = function (server) {
 		return '';
 	}
 };
-var author$project$Server$getServerView = F2(
-	function (msg, server) {
-		return _Utils_ap(
-			_List_fromArray(
-				[
-					A2(
-					elm$html$Html$div,
-					_List_Nil,
+var author$project$Server$getServerView = F3(
+	function (msg, server, withDatabase) {
+		return _List_fromArray(
+			[
+				A2(
+				elm$html$Html$fieldset,
+				_List_Nil,
+				_Utils_ap(
 					_List_fromArray(
 						[
-							elm$html$Html$text('Server name: '),
 							A2(
-							elm$html$Html$input,
+							elm$html$Html$legend,
+							_List_Nil,
 							_List_fromArray(
 								[
-									elm$html$Html$Attributes$placeholder('Server name'),
-									elm$html$Html$Attributes$value(server.name),
-									elm$html$Html$Events$onInput(
-									A2(elm$core$Basics$composeR, author$project$Server$ChangeName, msg))
-								]),
-							_List_Nil)
-						])),
-					A2(
-					elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text('Number of Kie server deployments: '),
+									elm$html$Html$text('Configuration of the individual KIE server group')
+								])),
 							A2(
-							elm$html$Html$input,
+							elm$html$Html$div,
+							_List_Nil,
 							_List_fromArray(
 								[
-									elm$html$Html$Attributes$placeholder('Deployments'),
-									elm$html$Html$Attributes$value(
-									author$project$Server$getDeploymentsAsString(server)),
-									elm$html$Html$Events$onInput(
-									A2(elm$core$Basics$composeR, author$project$Server$ChangeDeployments, msg))
-								]),
-							_List_Nil)
-						])),
-					A2(
-					elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text('Kie server replicas for DeploymentConfig: '),
+									elm$html$Html$text('Server name: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Server name'),
+											elm$html$Html$Attributes$value(server.name),
+											elm$html$Html$Events$onInput(
+											A2(elm$core$Basics$composeR, author$project$Server$ChangeName, msg))
+										]),
+									_List_Nil)
+								])),
 							A2(
-							elm$html$Html$input,
+							elm$html$Html$div,
+							_List_Nil,
 							_List_fromArray(
 								[
-									elm$html$Html$Attributes$placeholder('DeploymentConfig replicas'),
-									elm$html$Html$Attributes$value(
-									author$project$Server$getReplicasAsString(server)),
-									elm$html$Html$Events$onInput(
-									A2(elm$core$Basics$composeR, author$project$Server$ChangeReplicas, msg))
-								]),
-							_List_Nil)
-						])),
-					A2(
-					elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text('Keystore secret name: '),
+									elm$html$Html$text('Number of Kie server deployments: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Deployments'),
+											elm$html$Html$Attributes$value(
+											author$project$Server$getDeploymentsAsString(server)),
+											elm$html$Html$Events$onInput(
+											A2(elm$core$Basics$composeR, author$project$Server$ChangeDeployments, msg))
+										]),
+									_List_Nil)
+								])),
 							A2(
-							elm$html$Html$input,
+							elm$html$Html$div,
+							_List_Nil,
 							_List_fromArray(
 								[
-									elm$html$Html$Attributes$placeholder('Keystore secret name'),
-									elm$html$Html$Attributes$value(server.keystoreSecret),
-									elm$html$Html$Events$onInput(
-									A2(elm$core$Basics$composeR, author$project$Server$ChangeKeystoreSecret, msg))
-								]),
-							_List_Nil)
-						]))
-				]),
-			_Utils_ap(
-				A2(author$project$Server$getFromView, server.from, msg),
-				A2(author$project$Server$getEnvVariableView, msg, server)));
+									elm$html$Html$text('Kie server replicas for DeploymentConfig: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('DeploymentConfig replicas'),
+											elm$html$Html$Attributes$value(
+											author$project$Server$getReplicasAsString(server)),
+											elm$html$Html$Events$onInput(
+											A2(elm$core$Basics$composeR, author$project$Server$ChangeReplicas, msg))
+										]),
+									_List_Nil)
+								])),
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('Keystore secret name: '),
+									A2(
+									elm$html$Html$input,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$placeholder('Keystore secret name'),
+											elm$html$Html$Attributes$value(server.keystoreSecret),
+											elm$html$Html$Events$onInput(
+											A2(elm$core$Basics$composeR, author$project$Server$ChangeKeystoreSecret, msg))
+										]),
+									_List_Nil)
+								]))
+						]),
+					_Utils_ap(
+						A2(author$project$Server$getFromView, server.from, msg),
+						_Utils_ap(
+							A2(author$project$Server$getBuildView, server, msg),
+							_Utils_ap(
+								A2(author$project$Server$getEnvVariableView, msg, server),
+								withDatabase ? A2(author$project$Server$getDatabaseView, server, msg) : _List_Nil)))))
+			]);
 	});
 var author$project$Servers$ServerMsg = F2(
 	function (a, b) {
@@ -6377,45 +7108,30 @@ var elm$core$List$concatMap = F2(
 		return elm$core$List$concat(
 			A2(elm$core$List$map, f, list));
 	});
-var author$project$Servers$getServersView = F2(
-	function (msg, servers) {
-		return _List_fromArray(
-			[
+var author$project$Servers$getServersView = F3(
+	function (msg, servers, withDatabase) {
+		return _Utils_ap(
+			A2(
+				elm$core$List$concatMap,
+				function (server) {
+					return A3(
+						author$project$Server$getServerView,
+						A2(
+							elm$core$Basics$composeR,
+							author$project$Servers$ServerMsg(server),
+							msg),
+						server,
+						withDatabase);
+				},
+				servers.servers),
+			A3(
+				author$project$Server$getServerView,
 				A2(
-				elm$html$Html$fieldset,
-				_List_Nil,
-				_Utils_ap(
-					_List_fromArray(
-						[
-							A2(
-							elm$html$Html$legend,
-							_List_Nil,
-							_List_fromArray(
-								[
-									elm$html$Html$text('Configuration of the each individual KIE server')
-								]))
-						]),
-					_Utils_ap(
-						A2(
-							elm$core$List$concatMap,
-							function (server) {
-								return A2(
-									author$project$Server$getServerView,
-									A2(
-										elm$core$Basics$composeR,
-										author$project$Servers$ServerMsg(server),
-										msg),
-									server);
-							},
-							servers.servers),
-						A2(
-							author$project$Server$getServerView,
-							A2(
-								elm$core$Basics$composeR,
-								author$project$Servers$ServerMsg(author$project$Server$emptyServer),
-								msg),
-							author$project$Server$emptyServer))))
-			]);
+					elm$core$Basics$composeR,
+					author$project$Servers$ServerMsg(author$project$Server$emptyServer),
+					msg),
+				author$project$Server$emptyServer,
+				withDatabase));
 	});
 var author$project$Environment$getServersView = F2(
 	function (msg, environment) {
@@ -6423,61 +7139,147 @@ var author$project$Environment$getServersView = F2(
 			case 'Rhdm_trial':
 				if (environment.c.$ === 'Just') {
 					var servers = environment.c.a;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						servers);
+						servers,
+						false);
 				} else {
 					var _n1 = environment.c;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						{servers: _List_Nil});
+						{servers: _List_Nil},
+						false);
 				}
 			case 'Rhdm_authoring':
 				if (environment.c.$ === 'Just') {
 					var servers = environment.c.a;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						servers);
+						servers,
+						false);
 				} else {
 					var _n2 = environment.c;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						{servers: _List_Nil});
+						{servers: _List_Nil},
+						false);
 				}
 			case 'Rhdm_authoring_ha':
 				if (environment.c.$ === 'Just') {
 					var servers = environment.c.a;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						servers);
+						servers,
+						false);
 				} else {
 					var _n3 = environment.c;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						{servers: _List_Nil});
+						{servers: _List_Nil},
+						false);
 				}
 			case 'Rhdm_production_immutable':
 				if (environment.c.$ === 'Just') {
 					var servers = environment.c.a;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						servers);
+						servers,
+						false);
 				} else {
 					var _n4 = environment.c;
-					return A2(
+					return A3(
 						author$project$Servers$getServersView,
 						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
-						{servers: _List_Nil});
+						{servers: _List_Nil},
+						false);
+				}
+			case 'Rhpam_authoring_ha':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers,
+						true);
+				} else {
+					var _n5 = environment.c;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil},
+						true);
+				}
+			case 'Rhpam_authoring':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers,
+						true);
+				} else {
+					var _n6 = environment.c;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil},
+						true);
+				}
+			case 'Rhpam_production_immutable':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers,
+						true);
+				} else {
+					var _n7 = environment.c;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil},
+						true);
+				}
+			case 'Rhpam_production':
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers,
+						true);
+				} else {
+					var _n8 = environment.c;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil},
+						true);
 				}
 			default:
-				return _List_Nil;
+				if (environment.c.$ === 'Just') {
+					var servers = environment.c.a;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						servers,
+						true);
+				} else {
+					var _n9 = environment.c;
+					return A3(
+						author$project$Servers$getServersView,
+						A2(elm$core$Basics$composeR, author$project$Environment$ServersMsg, msg),
+						{servers: _List_Nil},
+						true);
+				}
 		}
 	});
 var author$project$Environment$toEnvironmentOption = F2(
@@ -6755,7 +7557,7 @@ var author$project$Console$getConsoleAsYaml = F2(
 	});
 var author$project$Environment$getConsoleAsYaml = F2(
 	function (environment, intendation) {
-		_n0$4:
+		_n0$9:
 		while (true) {
 			switch (environment.$) {
 				case 'Rhdm_trial':
@@ -6763,34 +7565,122 @@ var author$project$Environment$getConsoleAsYaml = F2(
 						var console = environment.b.a;
 						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
 					}
 				case 'Rhdm_authoring':
 					if (environment.b.$ === 'Just') {
 						var console = environment.b.a;
 						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
 					}
 				case 'Rhdm_authoring_ha':
 					if (environment.b.$ === 'Just') {
 						var console = environment.b.a;
 						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
 					}
 				case 'Rhdm_production_immutable':
 					if (environment.b.$ === 'Just') {
 						var console = environment.b.a;
 						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
+					}
+				case 'Rhpam_authoring_ha':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$9;
+					}
+				case 'Rhpam_authoring':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$9;
+					}
+				case 'Rhpam_production_immutable':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$9;
+					}
+				case 'Rhpam_production':
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$9;
 					}
 				default:
-					break _n0$4;
+					if (environment.b.$ === 'Just') {
+						var console = environment.b.a;
+						return A2(author$project$Console$getConsoleAsYaml, console, intendation);
+					} else {
+						break _n0$9;
+					}
 			}
 		}
 		return '';
+	});
+var author$project$Server$getBuildAsYaml = F2(
+	function (server, intendation) {
+		var _n0 = server.build;
+		if (_n0.$ === 'Just') {
+			var build = _n0.a;
+			return _Utils_ap(
+				A2(author$project$YamlUtils$getNameWithIntendation, 'build', intendation),
+				_Utils_ap(
+					A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'kieServerContainerDeployment', build.kieServerContainerDeployment, intendation + 1),
+					_Utils_ap(
+						A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'mavenMirrorURL', build.mavenMirrorUrl, intendation + 1),
+						_Utils_ap(
+							A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'artifactDir', build.artifactDir, intendation + 1),
+							_Utils_ap(
+								A2(author$project$YamlUtils$getNameWithIntendation, 'gitSource', intendation + 1),
+								_Utils_ap(
+									A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'uri', build.uri, intendation + 2),
+									_Utils_ap(
+										A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'reference', build.reference, intendation + 2),
+										A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'contextDir', build.contextDir, intendation + 2))))))));
+		} else {
+			return '';
+		}
+	});
+var author$project$Server$getDatabaseAsYaml = F2(
+	function (server, intendation) {
+		var _n0 = server.database;
+		if (_n0.$ === 'Just') {
+			switch (_n0.a.$) {
+				case 'H2':
+					var persistentVolumeClaimSize = _n0.a.a;
+					return _Utils_ap(
+						A2(author$project$YamlUtils$getNameWithIntendation, 'database', intendation),
+						_Utils_ap(
+							A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'type', 'h2', intendation + 1),
+							A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'size', persistentVolumeClaimSize, intendation + 1)));
+				case 'MySQL':
+					var persistentVolumeClaimSize = _n0.a.a;
+					return _Utils_ap(
+						A2(author$project$YamlUtils$getNameWithIntendation, 'database', intendation),
+						_Utils_ap(
+							A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'type', 'mysql', intendation + 1),
+							A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'size', persistentVolumeClaimSize, intendation + 1)));
+				default:
+					var persistentVolumeClaimSize = _n0.a.a;
+					return _Utils_ap(
+						A2(author$project$YamlUtils$getNameWithIntendation, 'database', intendation),
+						_Utils_ap(
+							A3(author$project$YamlUtils$getNameAndValueWithIntendation, 'type', 'postgresql', intendation + 1),
+							A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'size', persistentVolumeClaimSize, intendation + 1)));
+			}
+		} else {
+			return '';
+		}
 	});
 var author$project$Server$getDeploymentsAsYaml = F2(
 	function (server, intendation) {
@@ -6885,7 +7775,11 @@ var author$project$Server$getServerAsYaml = F2(
 								A3(author$project$YamlUtils$getNameAndNonEmptyValueWithIntendation, 'keystoreSecret', server.keystoreSecret, intendation + 1),
 								_Utils_ap(
 									A2(author$project$Server$getFromAsYaml, server, intendation + 1),
-									A2(author$project$Server$getEnvAsYaml, server, intendation + 1))))))));
+									_Utils_ap(
+										A2(author$project$Server$getBuildAsYaml, server, intendation + 1),
+										_Utils_ap(
+											A2(author$project$Server$getEnvAsYaml, server, intendation + 1),
+											A2(author$project$Server$getDatabaseAsYaml, server, intendation + 1))))))))));
 	});
 var author$project$Servers$getServersAsYaml = F2(
 	function (servers, intendation) {
@@ -6904,7 +7798,7 @@ var author$project$Servers$getServersAsYaml = F2(
 	});
 var author$project$Environment$getServersAsYaml = F2(
 	function (environment, intendation) {
-		_n0$4:
+		_n0$9:
 		while (true) {
 			switch (environment.$) {
 				case 'Rhdm_trial':
@@ -6912,31 +7806,64 @@ var author$project$Environment$getServersAsYaml = F2(
 						var servers = environment.c.a;
 						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
 					}
 				case 'Rhdm_authoring':
 					if (environment.c.$ === 'Just') {
 						var servers = environment.c.a;
 						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
 					}
 				case 'Rhdm_authoring_ha':
 					if (environment.c.$ === 'Just') {
 						var servers = environment.c.a;
 						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
 					}
 				case 'Rhdm_production_immutable':
 					if (environment.c.$ === 'Just') {
 						var servers = environment.c.a;
 						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
 					} else {
-						break _n0$4;
+						break _n0$9;
+					}
+				case 'Rhpam_authoring_ha':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$9;
+					}
+				case 'Rhpam_authoring':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$9;
+					}
+				case 'Rhpam_production_immutable':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$9;
+					}
+				case 'Rhpam_production':
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$9;
 					}
 				default:
-					break _n0$4;
+					if (environment.c.$ === 'Just') {
+						var servers = environment.c.a;
+						return A2(author$project$Servers$getServersAsYaml, servers, intendation);
+					} else {
+						break _n0$9;
+					}
 			}
 		}
 		return '';
@@ -7016,34 +7943,22 @@ var elm$html$Html$Attributes$rows = function (n) {
 		'rows',
 		elm$core$String$fromInt(n));
 };
+var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
 var author$project$Main$view = function (kieApp) {
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2(
-					elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text('Kie app name: '),
-							A2(
-							elm$html$Html$input,
-							_List_fromArray(
-								[
-									elm$html$Html$Attributes$placeholder('Kie app name'),
-									elm$html$Html$Attributes$value(kieApp.name),
-									elm$html$Html$Events$onInput(author$project$Main$ChangeName)
-								]),
-							_List_Nil)
-						]))
-				]),
-			_Utils_ap(
-				A2(author$project$Environment$getEnvironmentView, author$project$Main$EnvironmentMsg, kieApp.environment),
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2(elm$html$Html$Attributes$style, 'width', '60%'),
+						A2(elm$html$Html$Attributes$style, 'float', 'left')
+					]),
 				_Utils_ap(
-					author$project$Main$getImageRegistryView(kieApp),
 					_List_fromArray(
 						[
 							A2(
@@ -7051,21 +7966,46 @@ var author$project$Main$view = function (kieApp) {
 							_List_Nil,
 							_List_fromArray(
 								[
+									elm$html$Html$text('Kie app name: '),
 									A2(
-									elm$html$Html$textarea,
+									elm$html$Html$input,
 									_List_fromArray(
 										[
-											elm$html$Html$Attributes$cols(80),
-											elm$html$Html$Attributes$rows(25),
-											elm$html$Html$Attributes$readonly(true)
+											elm$html$Html$Attributes$placeholder('Kie app name'),
+											elm$html$Html$Attributes$value(kieApp.name),
+											elm$html$Html$Events$onInput(author$project$Main$ChangeName)
 										]),
-									_List_fromArray(
-										[
-											elm$html$Html$text(
-											author$project$Main$getKieAppAsYaml(kieApp))
-										]))
+									_List_Nil)
 								]))
-						])))));
+						]),
+					_Utils_ap(
+						A2(author$project$Environment$getEnvironmentView, author$project$Main$EnvironmentMsg, kieApp.environment),
+						author$project$Main$getImageRegistryView(kieApp)))),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2(elm$html$Html$Attributes$style, 'width', '40%'),
+						A2(elm$html$Html$Attributes$style, 'float', 'left')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Kie app custom resource YAML: '),
+						A2(
+						elm$html$Html$textarea,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$cols(80),
+								elm$html$Html$Attributes$rows(25),
+								elm$html$Html$Attributes$readonly(true)
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(
+								author$project$Main$getKieAppAsYaml(kieApp))
+							]))
+					]))
+			]));
 };
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
