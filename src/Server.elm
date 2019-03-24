@@ -28,6 +28,8 @@ type alias Build =
 
 type Database
     = H2
+    | MySQL
+    | PostgreSQL
 
 
 type alias Server =
@@ -103,6 +105,12 @@ getDatabaseFromName databaseName =
     case databaseName of
         "H2" ->
             Just H2
+
+        "MySQL" ->
+            Just MySQL
+
+        "PostgreSQL" ->
+            Just PostgreSQL
 
         _ ->
             Nothing
@@ -338,16 +346,24 @@ getDatabaseView : Server -> (Msg -> msg) -> List (Html msg)
 getDatabaseView server msg =
     case server.database of
         Nothing ->
-            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions True False) ]
+            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions True False False False) ]
 
         Just H2 ->
-            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False True) ]
+            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False True False False) ]
+
+        Just MySQL ->
+            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False False True False) ]
+
+        Just PostgreSQL ->
+            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False False False True) ]
 
 
-getDatabaseOptions : Bool -> Bool -> List (Html msg)
-getDatabaseOptions emptySelected h2Selected =
+getDatabaseOptions : Bool -> Bool -> Bool -> Bool -> List (Html msg)
+getDatabaseOptions emptySelected h2Selected mySqlSelected postgreSqlSelected =
     [ option [ Html.Attributes.selected emptySelected, value "" ] [ text "" ]
     , option [ Html.Attributes.selected h2Selected, value "H2" ] [ text "H2" ]
+    , option [ Html.Attributes.selected mySqlSelected, value "MySQL" ] [ text "MySQL" ]
+    , option [ Html.Attributes.selected postgreSqlSelected, value "PostgreSQL" ] [ text "PostgreSQL" ]
     ]
 
 
@@ -445,6 +461,14 @@ getDatabaseAsYaml server intendation =
         Just H2 ->
             YamlUtils.getNameWithIntendation "database" intendation
                 ++ YamlUtils.getNameAndValueWithIntendation "type" "h2" (intendation + 1)
+
+        Just MySQL ->
+            YamlUtils.getNameWithIntendation "database" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "type" "mysql" (intendation + 1)
+
+        Just PostgreSQL ->
+            YamlUtils.getNameWithIntendation "database" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "type" "postgresql" (intendation + 1)
 
         Nothing ->
             ""
