@@ -66,10 +66,10 @@ mapServerEventInServers updatedServer serverMessage servers =
 -- VIEW
 
 
-getServersView : (Msg -> msg) -> Servers -> List (Html msg)
-getServersView msg servers =
-    List.concatMap (\server -> Server.getServerView (ServerMsg server >> msg) server) servers.servers
-        ++ Server.getServerView (ServerMsg Server.emptyServer >> msg) Server.emptyServer
+getServersView : (Msg -> msg) -> Servers -> Bool -> List (Html msg)
+getServersView msg servers withDatabase =
+    List.concatMap (\server -> Server.getServerView (ServerMsg server >> msg) server withDatabase) servers.servers
+        ++ Server.getServerView (ServerMsg Server.emptyServer >> msg) Server.emptyServer withDatabase
 
 
 

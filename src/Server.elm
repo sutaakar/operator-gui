@@ -26,6 +26,10 @@ type alias Build =
     }
 
 
+type Database
+    = H2
+
+
 type alias Server =
     { name : String
     , deployments : Maybe Int
@@ -34,6 +38,7 @@ type alias Server =
     , from : Maybe From
     , build : Maybe Build
     , env : Maybe (List EnvItem.EnvItem)
+    , database : Maybe Database
     }
 
 
@@ -57,6 +62,7 @@ emptyServer =
     , from = Nothing
     , build = Nothing
     , env = Nothing
+    , database = Nothing
     }
 
 
@@ -92,6 +98,16 @@ getFromFromName fromName =
         Nothing
 
 
+getDatabaseFromName : String -> Maybe Database
+getDatabaseFromName databaseName =
+    case databaseName of
+        "H2" ->
+            Just H2
+
+        _ ->
+            Nothing
+
+
 
 -- UPDATE
 
@@ -106,6 +122,7 @@ type Msg
     | ChangeFromNamespace String
     | BuildMsg BuildMsg
     | EnvItemMsg EnvItem.Msg
+    | ChangeDatabaseType String
 
 
 type BuildMsg
@@ -170,6 +187,9 @@ mapServerEvent msg server =
                 Nothing ->
                     { server | build = mapBuildMsg buildMsg emptyBuild }
 
+        ChangeDatabaseType newDatabaseType ->
+            { server | database = getDatabaseFromName newDatabaseType }
+
 
 mapBuildMsg : BuildMsg -> Build -> Maybe Build
 mapBuildMsg msg build =
@@ -206,8 +226,8 @@ checkBuildContent build =
 -- VIEW
 
 
-getServerView : (Msg -> msg) -> Server -> List (Html msg)
-getServerView msg server =
+getServerView : (Msg -> msg) -> Server -> Bool -> List (Html msg)
+getServerView msg server withDatabase =
     [ Html.fieldset []
         ([ Html.legend [] [ text "Configuration of the individual KIE server group" ]
          , div [] [ text "Server name: ", input [ placeholder "Server name", value server.name, onInput (ChangeName >> msg) ] [] ]
@@ -218,6 +238,12 @@ getServerView msg server =
             ++ getFromView server.from msg
             ++ getBuildView server msg
             ++ getEnvVariableView msg server
+            ++ (if withDatabase then
+                    getDatabaseView server msg
+
+                else
+                    []
+               )
         )
     ]
 
@@ -308,6 +334,23 @@ getEnvVariableView msg server =
             [ EnvItem.getLastEnvVariableView (EnvItemMsg >> msg) ]
 
 
+getDatabaseView : Server -> (Msg -> msg) -> List (Html msg)
+getDatabaseView server msg =
+    case server.database of
+        Nothing ->
+            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions True False) ]
+
+        Just H2 ->
+            [ text "Database type: ", select [ onInput (ChangeDatabaseType >> msg) ] (getDatabaseOptions False True) ]
+
+
+getDatabaseOptions : Bool -> Bool -> List (Html msg)
+getDatabaseOptions emptySelected h2Selected =
+    [ option [ Html.Attributes.selected emptySelected, value "" ] [ text "" ]
+    , option [ Html.Attributes.selected h2Selected, value "H2" ] [ text "H2" ]
+    ]
+
+
 
 -- YAML
 
@@ -321,6 +364,7 @@ getServerAsYaml server intendation =
         ++ getFromAsYaml server (intendation + 1)
         ++ getBuildAsYaml server (intendation + 1)
         ++ getEnvAsYaml server (intendation + 1)
+        ++ getDatabaseAsYaml server (intendation + 1)
         |> String.dropLeft ((intendation + 1) * 2)
         |> String.append (String.repeat intendation "  " ++ "- ")
 
@@ -390,6 +434,17 @@ getEnvAsYaml server intendation =
     case server.env of
         Just envItems ->
             EnvItem.getEnvAsYaml envItems intendation
+
+        Nothing ->
+            ""
+
+
+getDatabaseAsYaml : Server -> Int -> String
+getDatabaseAsYaml server intendation =
+    case server.database of
+        Just H2 ->
+            YamlUtils.getNameWithIntendation "database" intendation
+                ++ YamlUtils.getNameAndValueWithIntendation "type" "h2" (intendation + 1)
 
         Nothing ->
             ""

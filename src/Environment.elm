@@ -322,58 +322,58 @@ getServersView : (Msg -> msg) -> Environment -> List (Html msg)
 getServersView msg environment =
     case environment of
         Rhdm_trial _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers False
 
         Rhdm_trial _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } False
 
         Rhdm_authoring _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers False
 
         Rhdm_authoring _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } False
 
         Rhdm_authoring_ha _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers False
 
         Rhdm_authoring_ha _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } False
 
         Rhdm_production_immutable _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers False
 
         Rhdm_production_immutable _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } False
 
         Rhpam_authoring_ha _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers True
 
         Rhpam_authoring_ha _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } True
 
         Rhpam_authoring _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers True
 
         Rhpam_authoring _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } True
 
         Rhpam_production_immutable _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers True
 
         Rhpam_production_immutable _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } True
 
         Rhpam_production _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers True
 
         Rhpam_production _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } True
 
         Rhpam_trial _ _ (Just servers) ->
-            Servers.getServersView (ServersMsg >> msg) servers
+            Servers.getServersView (ServersMsg >> msg) servers True
 
         Rhpam_trial _ _ Nothing ->
-            Servers.getServersView (ServersMsg >> msg) { servers = [] }
+            Servers.getServersView (ServersMsg >> msg) { servers = [] } True
 
 
 
